@@ -1,4 +1,3 @@
 package de.rogallab.mobile.domain
 
-interface IRepositoryPeople {
-}
+interface IRepositoryPeople

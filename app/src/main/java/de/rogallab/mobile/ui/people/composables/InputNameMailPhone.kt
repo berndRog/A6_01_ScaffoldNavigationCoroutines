@@ -249,7 +249,7 @@ fun InputNameMailPhone(
 }
 
 fun isValidEmail(email: String): Boolean {
-   return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+   return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
 
 fun isValidPhone(phone: String): Boolean {

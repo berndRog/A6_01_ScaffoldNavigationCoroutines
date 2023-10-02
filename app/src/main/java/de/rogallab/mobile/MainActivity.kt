@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import de.rogallab.mobile.ui.navigation.AppNavHost
-import de.rogallab.mobile.ui.people.PersonInputScreen
 import de.rogallab.mobile.ui.theme.AppTheme
 
 class MainActivity : BaseActivity(tag) {

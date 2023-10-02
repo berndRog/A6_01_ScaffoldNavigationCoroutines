@@ -131,7 +131,7 @@ fun PersonListItem(
 
    var checked: Boolean by rememberSaveable { mutableStateOf(false) }
 
-   Column() {
+   Column {
 
       Row(
          verticalAlignment = Alignment.CenterVertically,
