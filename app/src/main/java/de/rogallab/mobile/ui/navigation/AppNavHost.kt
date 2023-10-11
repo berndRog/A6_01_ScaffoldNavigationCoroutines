@@ -1,8 +1,12 @@
 package de.rogallab.mobile.ui.navigation
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.IntOffset
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,37 +27,44 @@ fun AppNavHost(
    val tag ="ok>AppNavHost         ."
 
    val navHostController: NavHostController = rememberNavController()
-   val timeSpan  = tween<IntOffset>(2000)
-   val left = AnimatedContentTransitionScope.SlideDirection.Left
-   val right = AnimatedContentTransitionScope.SlideDirection.Right
-   val down = AnimatedContentTransitionScope.SlideDirection.Down
-   val up = AnimatedContentTransitionScope.SlideDirection.Up
+   val duration  = 1500
+
+
+   // https://developer.android.com/jetpack/compose/animation/quick-guide
 
    NavHost(
       navController = navHostController,
-      startDestination = NavScreen.PeopleList.route
+      startDestination = NavScreen.PeopleList.route,
+      enterTransition = { EnterTransition.None },
+      exitTransition = { ExitTransition.None }
    ) {
       composable(
          route = NavScreen.PeopleList.route,
-
+/*
          enterTransition = {
-            logDebug(tag, "Navigate to PeopleListScreen() enterTransition")
-            slideIntoContainer(left, timeSpan)
+            logDebug(tag, "Nav -> PeopleListScreen() enterTransition")
+            fadeIn(                                   // default easing
+               animationSpec = tween(duration, easing = FastOutSlowInEasing)
+            ) +
+            slideIntoContainer(
+               animationSpec = tween(duration, easing = FastOutSlowInEasing),
+               towards = AnimatedContentTransitionScope.SlideDirection.Right
+            )
          },
          exitTransition = {
-            logDebug(tag, "Navigate to PeopleListScreen() exitTransition")
-            slideOutOfContainer(right, timeSpan)
-         },
-         popEnterTransition = {
-            logDebug(tag, "Navigate to PeopleListScreen() popEnterTransition")
-            slideIntoContainer(down, timeSpan)
-         },
-         popExitTransition = {
-            logDebug(tag, "Navigate to PeopleListScreen() popExitTransition")
-            slideOutOfContainer(up, timeSpan)
+            logDebug(tag, "Nav -> PeopleListScreen() exitTransition")
+            fadeOut(
+               animationSpec = tween(duration)
+            ) +
+            slideOutOfContainer(
+               animationSpec = tween(duration),
+               towards = AnimatedContentTransitionScope.SlideDirection.Right
+            )
          }
+ */
+         enterTransition = { enterTransition(duration) },
+         exitTransition  = { exitTransition(duration)  }
       ) {
-
          PeopleListScreen(
             navController = navHostController,
             viewModel = peopleViewModel
@@ -62,22 +73,8 @@ fun AppNavHost(
 
       composable(
          route = NavScreen.PersonInput.route,
-         enterTransition = {
-            logDebug(tag, "Navigate to PersonInputScreen() enterTransition")
-            slideIntoContainer(right, timeSpan)
-         },
-         exitTransition = {
-            logDebug(tag, "Navigate to PersonInputScreen() exitTransition")
-            slideOutOfContainer(left, timeSpan)
-         },
-         popEnterTransition = {
-            logDebug(tag, "Navigate to PersonInputScreen() popEnterTransition")
-            slideIntoContainer(down, timeSpan)
-         },
-         popExitTransition = {
-            logDebug(tag, "Navigate to PersonInputScreen() popExitTransition")
-            slideOutOfContainer(up, timeSpan)
-         }
+         enterTransition = { enterTransition(duration) },
+         exitTransition  = { exitTransition(duration)  }
       ) {
          PersonInputScreen(
             navController = navHostController,
@@ -88,6 +85,8 @@ fun AppNavHost(
       composable(
          route = NavScreen.PersonDetail.route + "/{personId}",
          arguments = listOf(navArgument("personId") { type = NavType.StringType}),
+         enterTransition = { enterTransition(duration) },
+         exitTransition  = { exitTransition(duration)  }
       ) { backStackEntry ->
          val id = backStackEntry.arguments?.getString("personId")?.let{
             UUID.fromString(it)
@@ -101,3 +100,20 @@ fun AppNavHost(
       }
    }
 }
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(
+   duration: Int
+) =
+   fadeIn(animationSpec = tween(duration)) +
+   slideIntoContainer(
+      animationSpec = tween(duration),
+      towards = AnimatedContentTransitionScope.SlideDirection.Left
+   )
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransition(
+   duration: Int
+) =
+   fadeOut(animationSpec = tween(duration)) +
+      slideOutOfContainer(
+         animationSpec = tween(duration),
+         towards = AnimatedContentTransitionScope.SlideDirection.Left
+      )

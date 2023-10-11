@@ -42,10 +42,8 @@ fun InputNameMailPhone(
 ) {
 
    val tag = "ok>InputNameMailPhone ."
-   logDebug(tag, "Start")
 
    val focusManager = LocalFocusManager.current
-
    val charLimit = 16
 
    var isErrorFirstName by rememberSaveable { mutableStateOf(false) }

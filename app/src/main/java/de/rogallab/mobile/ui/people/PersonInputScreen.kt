@@ -27,13 +27,11 @@ fun PersonInputScreen(
    navController: NavController,
    viewModel: PeopleViewModel
 ) {
-
    val tag = "ok>PersonInputScreen  ."
 
    LaunchedEffect(Unit) {
       viewModel.clearState()
    }
-
 
    BackHandler(
       enabled = true,
@@ -43,7 +41,8 @@ fun PersonInputScreen(
          // Navigate to 'PeopleList' destination and clear the back stack. As a
          // result, no further reverse navigation will be possible."
          navController.navigate(
-            route = NavScreen.PeopleList.route) {
+            route = NavScreen.PeopleList.route
+         ) {
             popUpTo(route = NavScreen.PeopleList.route) {
                inclusive = true
             }
@@ -51,15 +50,12 @@ fun PersonInputScreen(
       }
    )
 
+   // https://dev.to/tkuenneth/keyboard-handling-in-jetpack-compose-2593
 
    Column(
       modifier = Modifier
          .fillMaxWidth()
-         .verticalScroll(
-            state = rememberScrollState(),
-            enabled = true,
-            reverseScrolling = true
-         )
+         .verticalScroll(state = rememberScrollState())
    ) {
 
       TopAppBar(
