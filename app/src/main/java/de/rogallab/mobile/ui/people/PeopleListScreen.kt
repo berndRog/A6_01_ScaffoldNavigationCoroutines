@@ -82,7 +82,8 @@ fun PeopleListScreen(
 
             PersonListItem(
                id = person.id,
-               name = "${person.firstName} ${person.lastName} ",
+               firstName = person.firstName,
+               lastName = person.lastName,
                email = person.email,
                phone = person.phone,
                imagePath = person.imagePath ?: "",
@@ -119,7 +120,8 @@ fun PeopleListScreen(
 @Composable
 fun PersonListItem(
    id: UUID,
-   name: String,
+   firstName: String,
+   lastName: String,
    email: String?,
    phone: String?,
    imagePath: String?,
@@ -127,9 +129,8 @@ fun PersonListItem(
 ) {
    //12345678901234567890123
    val tag = "ok>PersonListItem     ."
-   logDebug(tag, "Person: $name")
+   logDebug(tag, "Person: $firstName $lastName")
 
-   var checked: Boolean by rememberSaveable { mutableStateOf(false) }
 
    Column {
 
@@ -143,7 +144,7 @@ fun PersonListItem(
       ) {
          Column {
             Text(
-               text = name,
+               text = "$firstName $lastName",
                style = MaterialTheme.typography.bodyLarge,
             )
             email?.let {
