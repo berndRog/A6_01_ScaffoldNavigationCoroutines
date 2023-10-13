@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.ui.people.PeopleListScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
@@ -91,7 +92,7 @@ fun AppNavHost(
          val id = backStackEntry.arguments?.getString("personId")?.let{
             UUID.fromString(it)
          }
-         logDebug(tag, "Navigate to PersonDetailScreen() id=$id")
+         logDebug(tag, "Navigate to PersonDetailScreen() id=${id?.as8()}")
          PersonDetailScreen(
             id = id,
             navController = navHostController,

@@ -7,40 +7,52 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import de.rogallab.mobile.domain.model.Person
+import de.rogallab.mobile.domain.utilities.UUIDEmpty
+import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import java.util.UUID
 
 class PeopleViewModel : ViewModel() {
 
-   var id: UUID = UUID.randomUUID()
+   private var _id: UUID = UUID.randomUUID()
+   val id
+      get() = _id
 
    // State = Observables (DataBinding)
-   var firstName: String by mutableStateOf(value = "")
-      private set
-   fun onFirstNameChange(value: String) { firstName = value }
+   private var _firstName: String by mutableStateOf(value = "")
+   val firstName
+      get() = _firstName
+   fun onFirstNameChange(value: String) {
+      if(value != _firstName )  _firstName = value }
 
-   var lastName: String by mutableStateOf(value = "")
-      private set
-   fun onLastNameChange(value: String) { lastName = value }
+   private var _lastName: String by mutableStateOf(value = "")
+   val lastName
+      get() = _lastName
+   fun onLastNameChange(value: String) {
+      if(value != _lastName )  _lastName = value
+   }
 
-   var email: String? by mutableStateOf(value = null)
-      private set
-   fun onEmailChange(value: String) { email = value }
+   private var _email: String? by mutableStateOf(value = null)
+   val email
+      get() = _email
+   fun onEmailChange(value: String) {
+      if(value != _email )  _email = value }
 
-   var phone: String? by mutableStateOf(value = null)
-      private set
-   fun onPhoneChange(value: String) { phone = value }
+   private var _phone: String? by mutableStateOf(value = null)
+   val phone
+      get() = _phone
+   fun onPhoneChange(value: String) {
+      if(value != _phone )  _phone = value }
 
-   var imagePath: String? by mutableStateOf(value = null)
-      private set
-   fun onImagePathChange(value: String?) { imagePath = value }
+   private var _imagePath: String? by mutableStateOf(value = null)
+   val imagePath
+      get() = _imagePath
+   fun onImagePathChange(value: String?) {
+      if(value != _imagePath )  _imagePath = value
+   }
 
    // mutabelList with observer
    val people: SnapshotStateList<Person> = mutableStateListOf<Person>()
-
-   init{
-//    errorMessage = "Test SnackBar: Fehlermeldung ..."
-   }
 
    // lifecycle ViewModel
    override fun onCleared() {
@@ -51,43 +63,43 @@ class PeopleViewModel : ViewModel() {
    fun readById(personId: UUID) {
       val person = people.first { it.id == personId }
       setStateFromPerson(person, personId)
-      logDebug(tag, "readbyId() ${person.firstName} ${person.lastName}")
+      logDebug(tag, "readbyId() ${person.firstName} ${person.lastName} ${person.id.as8()}")
    }
    fun add() {
       val person = getPersonFromState()
-      logDebug(tag, "add() ${person.firstName} ${person.lastName}")
+      logDebug(tag, "add() ${person.firstName} ${person.lastName} ${person.id.as8()}")
       people.add(person)
    }
    fun update() {
       val updatedPerson = getPersonFromState()
       val person = people.first { it.id == updatedPerson.id }
-      people.remove( person )
-      people.add(person)
-      logDebug(tag, "update() ${person.firstName} ${person.lastName}")
+      people.remove(person)
+      people.add(updatedPerson)
+      logDebug(tag, "update() ${updatedPerson.firstName} ${updatedPerson.lastName} ${updatedPerson.id.as8()}")
    }
 
    fun setStateFromPerson(
       person: Person?,
       personId:UUID = UUID.randomUUID()
    ) {
-      id        = person?.id ?: personId
-      firstName = person?.firstName ?: ""
-      lastName  = person?.lastName ?: ""
-      email     = person?.email
-      phone     = person?.phone
-      imagePath = person?.imagePath
+      _id        = person?.id ?: UUIDEmpty
+      _firstName = person?.firstName ?: ""
+      _lastName  = person?.lastName ?: ""
+      _email     = person?.email
+      _phone     = person?.phone
+      _imagePath = person?.imagePath
    }
 
    fun getPersonFromState(): Person =
-      Person(firstName, lastName, email, phone, imagePath)
+      Person(_firstName, _lastName, _email, _phone, _imagePath, _id)
 
    fun clearState() {
-      id        = UUID.randomUUID()
-      firstName = ""
-      lastName  = ""
-      email     = null
-      phone     = null
-      imagePath = null
+      _id        = UUID.randomUUID()
+      _firstName = ""
+      _lastName  = ""
+      _email     = null
+      _phone     = null
+      _imagePath = null
    }
 
    companion object {
