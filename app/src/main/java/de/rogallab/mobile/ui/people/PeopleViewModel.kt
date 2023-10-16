@@ -63,11 +63,11 @@ class PeopleViewModel : ViewModel() {
    fun readById(personId: UUID) {
       val person = people.first { it.id == personId }
       setStateFromPerson(person, personId)
-      logDebug(tag, "readbyId() ${person.firstName} ${person.lastName} ${person.id.as8()}")
+      logDebug(tag, "readbyId() ${person.asString()}")
    }
    fun add() {
       val person = getPersonFromState()
-      logDebug(tag, "add() ${person.firstName} ${person.lastName} ${person.id.as8()}")
+      logDebug(tag, "add() ${person.asString()}")
       people.add(person)
    }
    fun update() {
@@ -75,7 +75,7 @@ class PeopleViewModel : ViewModel() {
       val person = people.first { it.id == updatedPerson.id }
       people.remove(person)
       people.add(updatedPerson)
-      logDebug(tag, "update() ${updatedPerson.firstName} ${updatedPerson.lastName} ${updatedPerson.id.as8()}")
+      logDebug(tag, "update() ${updatedPerson.asString()}")
    }
 
    fun setStateFromPerson(
