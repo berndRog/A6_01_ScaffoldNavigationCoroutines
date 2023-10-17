@@ -45,15 +45,24 @@ fun PersonDetailScreen(
       mutableStateOf(Person("", ""))
    }
 
-   LaunchedEffect(Unit) {
+   // The state in the view model, i.e. the values in the detail dialog
+   // may only be read if the detail dialog was started with a click
+   // on LazyColumn item in PeopleListScreen.
+   // If PersonInputScreen is called again after a restart, the input
+   // values in the dialogs should remain unchanged (undeleted)
+   if (viewModel.isDetail) {
+      viewModel.isDetail = false
       id?.let {
          logDebug(tag, "ReadById()")
+//       LaunchedEffect(Unit) {
          viewModel.readById(id)
+//       }
          savedPerson = viewModel.getPersonFromState()
       } ?: run {
          // viewModel.onErrorChange("id not found")
       }
    }
+
 
    BackHandler(
       enabled = true,

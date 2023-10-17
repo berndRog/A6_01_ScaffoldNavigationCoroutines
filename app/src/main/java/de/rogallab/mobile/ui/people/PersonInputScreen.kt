@@ -29,7 +29,13 @@ fun PersonInputScreen(
 ) {
    val tag = "ok>PersonInputScreen  ."
 
-   LaunchedEffect(Unit) {
+   // The state in the view model, i.e. the values in the input dialogs
+   // may only be deleted if the input dialog was started with the FAB
+   // in PeopleListScreen.
+   // If PersonInputScreen is called again after a restart, the input
+   // values in the dialogs should remain unchanged (undeleted)
+   if(viewModel.isInput) {
+      viewModel.isInput = false
       viewModel.clearState()
    }
 

@@ -51,8 +51,13 @@ class PeopleViewModel : ViewModel() {
       if(value != _imagePath )  _imagePath = value
    }
 
-   // mutabelList with observer
+   // mutableList with observer
    val people: SnapshotStateList<Person> = mutableStateListOf<Person>()
+
+   // FAB clicked -> InputScreen initialized
+   var isInput = true
+   // LazyColum item clicked -> DetailScreen initialized
+   var isDetail = true
 
    // lifecycle ViewModel
    override fun onCleared() {
