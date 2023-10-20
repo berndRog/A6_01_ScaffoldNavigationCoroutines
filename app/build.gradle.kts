@@ -57,7 +57,7 @@ android {
 dependencies {
 
    // https://developer.android.com/jetpack/androidx/releases/activity
-   val activityCompose = "1.7.2"
+   val activityCompose = "1.8.0"
    implementation("androidx.activity:activity-compose:$activityCompose")
 
    // https://developer.android.com/jetpack/androidx/releases/core
@@ -68,12 +68,13 @@ dependencies {
    // It will greatly simplify the way you define Compose library versions in your
    // Gradle dependencies block.
    // https://developer.android.com/jetpack/compose/bom/bom-mapping
-   val compose = "1.5.1"
-   implementation(platform("androidx.compose:compose-bom:2023.09.00"))
+   val compose = "1.5.4"
+   implementation(platform("androidx.compose:compose-bom:2023.10.01"))
    implementation("androidx.compose.ui:ui")
    implementation("androidx.compose.ui:ui-graphics")
    implementation("androidx.compose.ui:ui-tooling-preview")
-   implementation("androidx.compose.material3:material3")
+   val material3 = "1.1.2"
+   implementation("androidx.compose.material3:material3:$material3")
    implementation("androidx.compose.material:material-icons-extended:$compose")
 
    // Lifecycle,
@@ -89,7 +90,7 @@ dependencies {
 
    // Navigation
    // https://developer.android.com/jetpack/androidx/releases/navigation
-   val navigation = "2.7.2"
+   val navigation = "2.7.4"
    implementation( "androidx.navigation:navigation-ui-ktx:$navigation")
    implementation("androidx.navigation:navigation-compose:$navigation")
    // Jetpack Compose Integration
@@ -134,10 +135,11 @@ dependencies {
    androidTestImplementation("androidx.test:runner:$runner")
 
    // To use Compose Testing
-   androidTestImplementation(platform("androidx.compose:compose-bom:2023.09.00"))
+   androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
    debugImplementation("androidx.compose.ui:ui-tooling")
-   debugImplementation("androidx.compose.ui:ui-test-manifest")
+   val uiTestManifest = "1.5.4"
+   debugImplementation("androidx.compose.ui:ui-test-manifest:$uiTestManifest")
 
    androidTestImplementation("androidx.navigation:navigation-testing:$navigation")
    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinCoroutines")
