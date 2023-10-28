@@ -1,7 +1,8 @@
 package de.rogallab.mobile.ui.people
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -12,13 +13,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import de.rogallab.mobile.R
+import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logInfo
 import de.rogallab.mobile.ui.navigation.NavScreen
-import de.rogallab.mobile.R
 import de.rogallab.mobile.ui.people.composables.InputNameMailPhone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +35,7 @@ fun PersonInputScreen(
    // in PeopleListScreen.
    // If PersonInputScreen is called again after a restart, the input
    // values in the dialogs should remain unchanged (undeleted)
-   if(viewModel.isInput) {
+   if (viewModel.isInput) {
       viewModel.isInput = false
       viewModel.clearState()
    }
@@ -69,10 +70,9 @@ fun PersonInputScreen(
          navigationIcon = {
             IconButton(
                onClick = {
-                  // save data
-                  viewModel.add()
-                  // toDo errorhandling -> Snackbar
-                  logInfo(tag, "Reverse Navigation")
+                  logDebug(tag, "Up (reverse) navigation + viewModel.add()")
+                  val id = viewModel.add()
+                  // navigate ...
                   // Navigate to 'PeopleList' destination and clear the back stack. As a
                   // result, no further reverse navigation will be possible."
                   navController.navigate(route = NavScreen.PeopleList.route) {
@@ -90,14 +90,16 @@ fun PersonInputScreen(
       )
 
       InputNameMailPhone(
-         firstName = viewModel.firstName,                          // State ↓
-         onFirstNameChange = { viewModel.onFirstNameChange(it) },  // Event ↑
-         lastName = viewModel.lastName,                            // State ↓
-         onLastNameChange = { viewModel.onLastNameChange(it) },    // Event ↑
-         email = viewModel.email,                                  // State ↓
-         onEmailChange = { viewModel.onEmailChange(it) },          // Event ↑
-         phone = viewModel.phone,                                  // State ↓
-         onPhoneChange = { viewModel.onPhoneChange(it) }           // Event ↑
+         firstName = viewModel.firstName,                         // State ↓
+         onFirstNameChange = viewModel::onFirstNameChange, // Event ↑
+         lastName = viewModel.lastName,                           // State ↓
+         // instead of using a function inside a lambda
+         // a function reference can be used
+         onLastNameChange = viewModel::onLastNameChange,          // Event ↑
+         email = viewModel.email,                                 // State ↓
+         onEmailChange = viewModel::onEmailChange,                // Event ↑
+         phone = viewModel.phone,                                 // State ↓
+         onPhoneChange = viewModel::onPhoneChange,                // Event ↑
       )
    }
 }

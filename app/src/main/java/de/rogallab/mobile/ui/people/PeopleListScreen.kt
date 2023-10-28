@@ -47,7 +47,7 @@ fun PeopleListScreen(
    viewModel: PeopleViewModel,
 ) {
 
-   val tag: String = "ok>PeopleListScreen   ."
+   val tag = "ok>PeopleListScreen   ."
 
    Column(
       modifier = Modifier.fillMaxWidth()

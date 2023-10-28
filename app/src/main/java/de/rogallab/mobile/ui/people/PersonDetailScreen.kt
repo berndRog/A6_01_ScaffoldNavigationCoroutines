@@ -13,7 +13,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,9 +36,7 @@ fun PersonDetailScreen(
    viewModel: PeopleViewModel,
 ) {
 
-   val tag: String = "ok>PersonDetailScreen ."
-   logDebug(tag, "Start")
-   // viewModel.clear()
+   val tag = "ok>PersonDetailScreen ."
 
    var savedPerson by remember {
       mutableStateOf(Person("", ""))
@@ -68,7 +65,7 @@ fun PersonDetailScreen(
       enabled = true,
       onBack = {
          logInfo(tag, "Back Navigation (Abort)")
-         viewModel.setStateFromPerson(savedPerson, savedPerson.id)
+         viewModel.setStateFromPerson(savedPerson)
          // Navigate to 'PeopleList' destination and clear the back stack. As a
          // result, no further reverse navigation will be possible."
          navController.navigate(route = NavScreen.PeopleList.route) {
@@ -93,10 +90,8 @@ fun PersonDetailScreen(
          title = { Text(stringResource(R.string.person_detail)) },
          navigationIcon = {
             IconButton(onClick = {
-               // update data
+               logDebug(tag, "Up (reverse) navigation: viewModel.update()")
                viewModel.update()
-               // toDo Errorhandling -> Snackbar
-               logInfo(tag, "Reverse Navigation")
                // Navigate to 'PeopleList' destination and clear the back stack. As a
                // result, no further reverse navigation will be possible."
                navController.navigate(route = NavScreen.PeopleList.route) {
@@ -110,14 +105,14 @@ fun PersonDetailScreen(
       )
 
       InputNameMailPhone(
-         firstName = viewModel.firstName,                         // State ↓
-         onFirstNameChange = { viewModel.onFirstNameChange(it) }, // Event ↑
-         lastName = viewModel.lastName,                           // State ↓
-         onLastNameChange = { viewModel.onLastNameChange(it) },   // Event ↑
-         email = viewModel.email,                                 // State ↓
-         onEmailChange = { viewModel.onEmailChange(it) },         // Event ↑
-         phone = viewModel.phone,                                 // State ↓
-         onPhoneChange = { viewModel.onPhoneChange(it) }          // Event ↑
+         firstName = viewModel.firstName,                       // State ↓
+         onFirstNameChange = viewModel::onFirstNameChange,      // Event ↑
+         lastName = viewModel.lastName,                         // State ↓
+         onLastNameChange = viewModel::onLastNameChange,        // Event ↑
+         email = viewModel.email,                               // State ↓
+         onEmailChange = viewModel::onEmailChange,              // Event ↑
+         phone = viewModel.phone,                               // State ↓
+         onPhoneChange = viewModel::onPhoneChange,              // Event ↑
       )
    }
 }
