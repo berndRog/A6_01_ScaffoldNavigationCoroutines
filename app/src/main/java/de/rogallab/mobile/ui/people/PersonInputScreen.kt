@@ -30,34 +30,16 @@ fun PersonInputScreen(
 ) {
    val tag = "ok>PersonInputScreen  ."
 
-   // The state in the view model, i.e. the values in the input dialogs
-   // may only be deleted if the input dialog was started with the FAB
-   // in PeopleListScreen.
-   // If PersonInputScreen is called again after a restart, the input
-   // values in the dialogs should remain unchanged (undeleted)
-   if (viewModel.isInput) {
-      viewModel.isInput = false
-      viewModel.clearState()
-   }
-
    BackHandler(
       enabled = true,
       onBack = {
          logInfo(tag, "Back Navigation (Abort)")
-         viewModel.clearState()
-         // Navigate to 'PeopleList' destination and clear the back stack. As a
-         // result, no further reverse navigation will be possible."
-         navController.navigate(
-            route = NavScreen.PeopleList.route
-         ) {
-            popUpTo(route = NavScreen.PeopleList.route) {
-               inclusive = true
-            }
-         }
+         navController.popBackStack(
+            route = NavScreen.PeopleList.route,
+            inclusive = false
+         )
       }
    )
-
-   // https://dev.to/tkuenneth/keyboard-handling-in-jetpack-compose-2593
 
    Column(
       modifier = Modifier
@@ -71,10 +53,9 @@ fun PersonInputScreen(
             IconButton(
                onClick = {
                   logDebug(tag, "Up (reverse) navigation + viewModel.add()")
-                  val id = viewModel.add()
-                  // navigate ...
-                  // Navigate to 'PeopleList' destination and clear the back stack. As a
-                  // result, no further reverse navigation will be possible."
+                  viewModel.add()
+                  // Navigate to PeopleList and clear the back stack. As a
+                  // result, no further reverse navigation will be possible
                   navController.navigate(route = NavScreen.PeopleList.route) {
                      popUpTo(route = NavScreen.PeopleList.route) {
                         inclusive = true
@@ -91,7 +72,7 @@ fun PersonInputScreen(
 
       InputNameMailPhone(
          firstName = viewModel.firstName,                         // State ↓
-         onFirstNameChange = viewModel::onFirstNameChange, // Event ↑
+         onFirstNameChange = { viewModel.onFirstNameChange(it) }, // Event ↑
          lastName = viewModel.lastName,                           // State ↓
          // instead of using a function inside a lambda
          // a function reference can be used

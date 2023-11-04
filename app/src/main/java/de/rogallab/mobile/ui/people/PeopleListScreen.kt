@@ -22,10 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,13 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.model.Person
-import de.rogallab.mobile.domain.utilities.as8
-import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.domain.utilities.logDebug
+import de.rogallab.mobile.ui.navigation.NavScreen
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun PeopleListScreen(
    navController: NavController,
@@ -89,13 +83,9 @@ fun PeopleListScreen(
                phone = person.phone,
                imagePath = person.imagePath ?: "",
                onClick = { id ->
-                  // LazyColum item clicked -> DetailScreen initialized
-                  viewModel.isDetail = true
                   logDebug(tag, "Forward Navigation: Item clicked")
                   // Navigate to 'PersonDetail' destination and put 'PeopleList' on the back stack
-                  navController.navigate(
-                     route = NavScreen.PersonDetail.route + "/$id"
-                  )
+                  navController.navigate(route = NavScreen.PersonDetail.route + "/$id")
                },
             )
          }
@@ -108,12 +98,10 @@ fun PeopleListScreen(
             containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
                // FAB clicked -> InputScreen initialized
-               viewModel.isInput = true
+               viewModel.clearState()
                logDebug(tag, "Forward Navigation: FAB clicked")
-               // Navigate to 'PersonDetail' destination and put 'PeopleList' on the back stack
-               navController.navigate(
-                  route = NavScreen.PersonInput.route
-               )
+               // Navigate to PersonDetail and put PeopleList on the back stack
+               navController.navigate(route = NavScreen.PersonInput.route)
             }
          ) {
             Icon(Icons.Default.Add, "Add a contact")
@@ -134,10 +122,8 @@ fun PersonListItem(
 ) {
    //12345678901234567890123
    val tag = "ok>PersonListItem     ."
-   logDebug(tag, "Person: $firstName $lastName ${id.as8()}")
 
    Column {
-
       Row(
          verticalAlignment = Alignment.CenterVertically,
          modifier = Modifier
@@ -167,7 +153,6 @@ fun PersonListItem(
             }
          }
       }
-
       Divider(modifier = Modifier.padding(vertical = 8.dp))
    }
 }

@@ -53,11 +53,6 @@ class PeopleViewModel : ViewModel() {
    // mutableList with observer
    val people: SnapshotStateList<Person> = mutableStateListOf()
 
-   // FAB clicked -> InputScreen initialized
-   var isInput = true
-   // LazyColum item clicked -> DetailScreen initialized
-   var isDetail = true
-
    // lifecycle ViewModel
    override fun onCleared() {
       logDebug(tag, "onCleared()")
@@ -76,7 +71,6 @@ class PeopleViewModel : ViewModel() {
       if(people.firstOrNull{ it.id == person.id } == null) {
          // no person found with same id
          people.add(person)
-         clearState()
       }
    }
 
@@ -86,7 +80,6 @@ class PeopleViewModel : ViewModel() {
       people.remove(person)
       people.add(updatedPerson)
       logDebug(tag, "update() ${updatedPerson.asString()}")
-      clearState()
    }
 
    fun setStateFromPerson(person: Person?) {
@@ -102,6 +95,7 @@ class PeopleViewModel : ViewModel() {
       Person(_firstName, _lastName, _email, _phone, _imagePath, _id)
 
    fun clearState() {
+      logDebug(tag, "clearState")
       _firstName = ""
       _lastName  = ""
       _email     = null
