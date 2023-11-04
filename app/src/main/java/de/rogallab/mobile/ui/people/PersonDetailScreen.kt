@@ -65,11 +65,7 @@ fun PersonDetailScreen(
    Column(
       modifier = Modifier
          .fillMaxWidth()
-         .verticalScroll(
-            state = rememberScrollState(),
-            enabled = true,
-            reverseScrolling = true
-         )
+         .verticalScroll(state = rememberScrollState())
    ) {
 
       TopAppBar(
