@@ -120,7 +120,7 @@ fun PersonListItem(
    imagePath: String?,
    onClick: (UUID) -> Unit    // Event ↑  Person
 ) {
-   //12345678901234567890123
+
    val tag = "ok>PersonListItem     ."
 
    Column {
