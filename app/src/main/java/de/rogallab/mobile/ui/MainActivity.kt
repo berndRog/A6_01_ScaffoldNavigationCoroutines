@@ -1,23 +1,34 @@
-package de.rogallab.mobile
+package de.rogallab.mobile.ui
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import de.rogallab.mobile.ui.navigation.AppNavHost
 import de.rogallab.mobile.ui.theme.AppTheme
 
 class MainActivity : BaseActivity(tag) {
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
+
+      // Start Windows insets
+      // https://developer.android.com/develop/ui/compose/layouts/insets
+      enableEdgeToEdge()
+      // use insets to show to snackbar above ime keyboard
+      window?.let {  window ->
+         WindowCompat.setDecorFitsSystemWindows(window, false)
+      }
+
       setContent {
+
          AppTheme {
-            Surface(modifier = Modifier.fillMaxSize(),
-               color = MaterialTheme.colorScheme.background
+            Box(
+               modifier = Modifier.safeDrawingPadding()
             ){
                AppNavHost()
             }
@@ -28,8 +39,9 @@ class MainActivity : BaseActivity(tag) {
    companion object {
       const val isInfo = true
       const val isDebug = true
+      const val isVerbose  = true
       //12345678901234567890123
-      private const val tag = "ok>MainActivity       ."
+      private const val tag = "[MainActivity]"
    }
 }
 

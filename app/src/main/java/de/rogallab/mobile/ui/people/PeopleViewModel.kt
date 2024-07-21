@@ -1,18 +1,26 @@
 package de.rogallab.mobile.ui.people
 
-import androidx.compose.runtime.getValue
+import android.util.Patterns
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.lifecycle.ViewModel
 import de.rogallab.mobile.domain.model.Person
-import de.rogallab.mobile.domain.utilities.UUIDEmpty
 import de.rogallab.mobile.domain.utilities.logDebug
+import de.rogallab.mobile.ui.errors.ErrorMessages
+import de.rogallab.mobile.ui.errors.ResourceProvider
+import de.rogallab.mobile.ui.navigation.NavEvent
+import de.rogallab.mobile.ui.people.base.BaseViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.util.UUID
 
-class PeopleViewModel : ViewModel() {
+class PeopleViewModel(
+   private val _errorMessages:ErrorMessages
+) : BaseViewModel(tag) {
 
+
+   /*
    private var _id: UUID = UUID.randomUUID()
 
    // State = Observables (DataBinding)
@@ -49,6 +57,38 @@ class PeopleViewModel : ViewModel() {
    fun onImagePathChange(value: String?) {
       if(value != _imagePath )  _imagePath = value
    }
+   */
+
+
+   // Data Binding PersonInputScreen <=> PersonViewModel
+   private val _personUiStateFlow: MutableStateFlow<PersonUiState> = MutableStateFlow(PersonUiState())
+   val personUiStateFlow: StateFlow<PersonUiState> = _personUiStateFlow.asStateFlow()
+
+   fun onFirstNameChange(firstName: String) {
+      if (firstName == _personUiStateFlow.value.person.firstName) return
+      _personUiStateFlow.update { it: PersonUiState ->
+         it.copy(person = it.person.copy(firstName = firstName))
+      }
+   }
+   fun onLastNameChange(lastName: String) {
+      if (lastName == _personUiStateFlow.value.person.lastName) return
+      _personUiStateFlow.update { it: PersonUiState ->
+         it.copy(person = it.person.copy(lastName = lastName))
+      }
+   }
+   fun onEmailChange(email: String?) {
+      if (email == null || email == _personUiStateFlow.value.person.email) return
+      _personUiStateFlow.update { it: PersonUiState ->
+         it.copy(person = it.person.copy(email = email))
+      }
+   }
+   fun onPhoneChange(phone: String?) {
+      if (phone == null || phone == _personUiStateFlow.value.person.phone) return
+      _personUiStateFlow.update { it: PersonUiState ->
+         it.copy(person = it.person.copy(phone = phone))
+      }
+   }
+
 
    // mutableList with observer
    val people: SnapshotStateList<Person> = mutableStateListOf()
@@ -59,14 +99,25 @@ class PeopleViewModel : ViewModel() {
       super.onCleared()
    }
 
-   fun readById(personId: UUID) {
+
+   fun validateTheSaveAndNavigate(
+
+   ) {
+      // input is ok        -> add and navigate up
+      // detail is ok       -> update and navigate up
+      // is the is an error -> show error and stay on screen
+   }
+
+   fun getById(personId: UUID) {
       val person = people.first { it.id == personId }
-      setStateFromPerson(person)
+      _personUiStateFlow.update { personUiState ->
+         personUiState.copy(person = person)
+      }
       logDebug(tag, "readbyId() ${person.asString()}")
    }
 
    fun add() {
-      val person = getPersonFromState()
+      val person = _personUiStateFlow.value.person
       logDebug(tag, "add() ${person.asString()}")
       if(people.firstOrNull{ it.id == person.id } == null) {
          // no person found with same id
@@ -75,36 +126,58 @@ class PeopleViewModel : ViewModel() {
    }
 
    fun update() {
-      val updatedPerson = getPersonFromState()
+      val updatedPerson = _personUiStateFlow.value.person
       val person = people.first { it.id == updatedPerson.id }
       people.remove(person)
       people.add(updatedPerson)
       logDebug(tag, "update() ${updatedPerson.asString()}")
    }
 
-   fun setStateFromPerson(person: Person?) {
-      _firstName = person?.firstName ?: ""
-      _lastName  = person?.lastName ?: ""
-      _email     = person?.email
-      _phone     = person?.phone
-      _imagePath = person?.imagePath
-      _id        = person?.id ?: UUIDEmpty
-   }
-
-   fun getPersonFromState(): Person =
-      Person(_firstName, _lastName, _email, _phone, _imagePath, _id)
-
    fun clearState() {
       logDebug(tag, "clearState")
-      _firstName = ""
-      _lastName  = ""
-      _email     = null
-      _phone     = null
-      _imagePath = null
-      _id        = UUID.randomUUID()
+      // create a new person
+      _personUiStateFlow.update { personUiState ->
+         personUiState.copy(person = Person())
+      }
+   }
+
+
+   fun validate(
+      isInput: Boolean
+   ) {
+      val charMin = _errorMessages.charMin
+      val charMax = _errorMessages.charMax
+
+      val person = _personUiStateFlow.value.person
+      // firstName or lastName too short
+      if (person.firstName.isEmpty() || person.firstName.length < charMin) {
+         showOnError(message = _errorMessages.nameTooShort, navEvent = null)
+      }
+      else if (person.lastName.isEmpty() || person.lastName.length < charMin) {
+         showOnError(message = _errorMessages.nameTooShort, navEvent = null)
+      }
+      else if (person.firstName.length > charMax) {
+         showOnError(message = _errorMessages.nameTooLong, navEvent = null)
+      }
+      else if (person.lastName.length > charMax) {
+         showOnError(message = _errorMessages.nameTooLong, navEvent = null)
+      }
+      else if (person.email != null &&
+         !Patterns.EMAIL_ADDRESS.matcher(person.email).matches()) {
+         showOnError(message = _errorMessages.emailInValid, navEvent = null)
+      }
+      else if (person.phone != null &&
+         !Patterns.PHONE.matcher(person.phone).matches()) {
+         showOnError(message = _errorMessages.phoneInValid, navEvent = null)
+      }
+      else {
+         if (isInput) this.add()
+         else         this.update()
+         onNavigateTo(NavEvent.ToPeopleList)
+      }
    }
 
    companion object {
-      private val tag:String = "ok>PeopleViewModel    ."
+      private const val tag = "[PeopleViewModel]"
    }
 }

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,16 +33,17 @@ import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.model.Person
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.ui.navigation.NavScreen
+import org.koin.androidx.compose.koinViewModel
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeopleListScreen(
    navController: NavController,
-   viewModel: PeopleViewModel,
+   viewModel: PeopleViewModel = koinViewModel()
 ) {
 
-   val tag = "ok>PeopleListScreen   ."
+   val tag = "[PeopleListScreen]"
 
    Column(
       modifier = Modifier.fillMaxWidth()
@@ -121,14 +123,12 @@ fun PersonListItem(
    onClick: (UUID) -> Unit    // Event ↑  Person
 ) {
 
-   val tag = "ok>PersonListItem     ."
-
    Column {
       Row(
          verticalAlignment = Alignment.CenterVertically,
          modifier = Modifier
             .clickable {
-               logDebug(tag, "Row onClick()")
+               logDebug("[PersonListItem]", "Row onClick()")
                onClick(id)  // Event ↑
             }
       ) {
@@ -153,6 +153,6 @@ fun PersonListItem(
             }
          }
       }
-      Divider(modifier = Modifier.padding(vertical = 8.dp))
+      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
    }
 }

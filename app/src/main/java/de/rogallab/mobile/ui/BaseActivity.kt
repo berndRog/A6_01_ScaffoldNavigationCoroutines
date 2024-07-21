@@ -1,4 +1,4 @@
-package de.rogallab.mobile
+package de.rogallab.mobile.ui
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -56,8 +56,8 @@ open class BaseActivity(
    }
 
    // Save instance state: invoked when the activity may be temporarily destroyed,
-   override fun onSaveInstanceState(savedStateBundle: Bundle) {
-      super.onSaveInstanceState(savedStateBundle)
+   override fun onSaveInstanceState(outState: Bundle) {
+      super.onSaveInstanceState(outState)
       logInfo(_tag, "onSaveInstanceState()")
    }
 
