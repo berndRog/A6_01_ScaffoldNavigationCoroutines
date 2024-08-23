@@ -1,8 +1,9 @@
 package de.rogallab.mobile.domain.utilities
 
 import android.util.Log
-import de.rogallab.mobile.ui.MainActivity.Companion.isDebug
-import de.rogallab.mobile.ui.MainActivity.Companion.isInfo
+import de.rogallab.mobile.MainActivity.Companion.isDebug
+import de.rogallab.mobile.MainActivity.Companion.isInfo
+import de.rogallab.mobile.MainActivity.Companion.isVerbose
 
 fun logError(tag: String, message: String) {
    val msg = formatMessage(message)
@@ -23,7 +24,7 @@ fun logDebug(tag: String, message: String) {
 }
 
 fun logVerbose(tag: String, message: String) {
-   if (isDebug) Log.v(tag, message)
+   if (isVerbose) Log.v(tag, message)
 }
 
 private fun formatMessage(message: String) =

@@ -9,7 +9,6 @@
   <string name="phone">Telefonnummer</string>
   <string name="errorCharMin">2</string>
   <string name="errorCharMax">16</string>
-  <string name="okChars">2-16 Zeichen sind erlaubt</string>
   <string name="errorNameTooShort">Name ist zu kurz</string>
   <string name="errorNameTooLong">Name ist zu lang</string>
   <string name="errorEmail">E-Mail Adresse ist unzulässig</string>

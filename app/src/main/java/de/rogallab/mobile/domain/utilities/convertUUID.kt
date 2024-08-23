@@ -1,9 +1,5 @@
 package de.rogallab.mobile.domain.utilities
 
-import java.util.UUID
-
-fun UUID.as8(): String =
-   this.toString().substring(0..7)+"..."
-
-val UUIDEmpty: UUID
-   get() = UUID.fromString("00000000-0000-0000-0000-000000000000")
+// UUID is handled as String
+fun String.as8(): String = this.substring(0..7)+"..."
+val UuidEmpty: String = "00000000-0000-0000-0000-000000000000"

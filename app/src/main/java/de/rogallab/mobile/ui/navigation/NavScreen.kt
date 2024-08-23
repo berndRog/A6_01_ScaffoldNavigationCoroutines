@@ -12,17 +12,17 @@ sealed class NavScreen(
    val icon: ImageVector? = null
 ) {
    data object PeopleList: NavScreen(
-      route = "peopleListScreen",
+      route = "PeopleListScreen",
       title = "Personen",
       icon =  Icons.Outlined.Group
    )
    data object PersonInput: NavScreen(
-      route = "personInputScreen",
+      route = "PersonInputScreen",
       title = "Person hinzufügen",
       icon = Icons.Outlined.PersonAdd
    )
    data object PersonDetail: NavScreen(
-      route = "personDetailScreen",
+      route = "PersonDetailScreen",
       title = "Person ändern",
       icon = Icons.Outlined.Person
    )
