@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,8 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import de.rogallab.mobile.domain.utilities.logInfo
+import de.rogallab.mobile.ui.people.composables.PeopleSwipeListScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
-import de.rogallab.mobile.ui.people.composables.PeopleListScreen
 import de.rogallab.mobile.ui.people.composables.PersonScreen
 
 @Composable
@@ -35,11 +34,11 @@ fun AppNavHost(
       startDestination = NavScreen.PeopleList.route,
       enterTransition = { enterTransition(duration) },
       exitTransition  = { exitTransition(duration)  },
-     // popEnterTransition = { popEnterTransition(duration) },
-     // popExitTransition = { popExitTransition(duration) }
+      popEnterTransition = { popEnterTransition(duration) },
+      popExitTransition = { popExitTransition(duration) }
    ) {
       composable( route = NavScreen.PeopleList.route ) {
-         PeopleListScreen(
+         PeopleSwipeListScreen(
             viewModel = peopleViewModel
          )
       }
@@ -65,51 +64,34 @@ fun AppNavHost(
    }
 
    // Observing the navigation state and handle navigation
-   val navigationState: NavUiState by peopleViewModel.navUiStateFlow.collectAsStateWithLifecycle()
-   navigationState.event?.let { navEvent: NavEvent ->
-      logInfo(tag, "navigation event: $navEvent")
+   val navUiState: NavUiState by peopleViewModel.navUiStateFlow.collectAsStateWithLifecycle()
+   navUiState.event?.let { navEvent: NavEvent ->
+      logInfo(tag, "navEvent: $navEvent")
       when(navEvent) {
-         is NavEvent.ToPeopleList -> {
-            // delete the current screen from back stack
-            navController.popBackStack()
-            // navigate to the PeopleListScreen
-            navController.navigate(NavScreen.PeopleList.route)
-            // reset the NavState to null, i.e. navigation event is handled
-            peopleViewModel.onNavEventHandled()
-         }
-         is NavEvent.ToPersonInput -> {
-            navController.popBackStack()
-            navController.navigate(NavScreen.PersonInput.route)
-            peopleViewModel.onNavEventHandled()
-         }
-         is NavEvent.ToPersonDetail -> {
-            navController.popBackStack()
-            navController.navigate(NavScreen.PersonDetail.route + "/" + navEvent.id)
+
+         is NavEvent.NavigateTo -> {
+            // Each navigate() pushes the given destination
+            // to the top of the stack.
+            navController.navigate(navEvent.route) {
+               // popUpTo() clears the back stack up to the given route
+               // inclusive = true -> ensures that any previous instances of
+               // that route are removed
+               popUpTo(navEvent.route) {
+                  inclusive = true
+               }
+            }
+            // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
 
-         is NavEvent.NavigateBack -> {
-            navController.navigateUp()
-            peopleViewModel.onNavEventHandled()
-         }
-         is NavEvent.NavigateTo -> {
-            navController.navigate(navEvent.route) {
-               popUpTo(navEvent.route) { inclusive = true }
-            }
+         is NavEvent.Back -> {
+            // navigateUp() pops the back stack to the previous destination
+            navController.popBackStack()
             peopleViewModel.onNavEventHandled()
          }
       }
    }
 
-}
-
-fun navigateAndPopCurrentDestination(
-   navController: NavController,
-   route: String,
-   onNavEventHandled: () -> Unit
-) {
-   navController.popBackStack()  // Pops the current destination off the back stack
-   navController.navigate(route) // Navigates to the new destination
 }
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(
@@ -128,14 +110,16 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransition(
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnterTransition(
    duration: Int
-) = fadeIn(animationSpec = tween(duration))+ slideIntoContainer(
-   animationSpec = tween(duration),
-   towards = AnimatedContentTransitionScope.SlideDirection.Down
-)
+) = fadeIn(animationSpec = tween(2000))
+// + slideIntoContainer(
+//   animationSpec = tween(duration),
+//   towards = AnimatedContentTransitionScope.SlideDirection.Down
+//)
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popExitTransition(
    duration: Int
-) = fadeOut(animationSpec = tween(duration)) + slideOutOfContainer(
-   animationSpec = tween(duration),
-   towards = AnimatedContentTransitionScope.SlideDirection.Down
-)
+) = fadeOut(animationSpec = tween(2000))
+//+ slideOutOfContainer(
+//   animationSpec = tween(duration),
+//   towards = AnimatedContentTransitionScope.SlideDirection.Down
+//)

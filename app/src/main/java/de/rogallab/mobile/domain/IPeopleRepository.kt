@@ -15,7 +15,7 @@ interface IPeopleRepository {
 
     fun create(person: Person): ResultData<Unit>
     fun update(person: Person): ResultData<Unit>
-    fun remove(id: String): ResultData<Unit>
+    fun remove(person: Person): ResultData<Unit>
 
     fun readDataStore(): ResultData<Unit>
 

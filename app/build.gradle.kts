@@ -112,8 +112,8 @@ dependencies {
 
    // Ui Navigation
    // https://developer.android.com/jetpack/androidx/releases/navigation
-   implementation(libs.androidx.navigation.ui.ktx)
-   implementation(libs.androidx.navigation.compose)
+//   implementation(libs.androidx.navigation.ui.ktx)
+//   implementation(libs.androidx.navigation.compose)
    // Jetpack Compose Integration
    implementation(libs.androidx.navigation.compose)
 
@@ -131,7 +131,7 @@ dependencies {
 
    // Ktor/Kotlin JSON Serializer
    implementation(libs.kotlinx.serialization.json)
-
+   implementation(libs.androidx.ui.text.google.fonts)
    // TESTS -----------------------
    testImplementation(libs.junit)
    testImplementation(libs.koin.test)
@@ -172,7 +172,7 @@ dependencies {
    androidTestImplementation(libs.koin.test.junit4)
    androidTestImplementation(libs.koin.test.junit5)
 
-   debugImplementation(libs.androidx.ui.tooling)
+//   debugImplementation(libs.androidx.ui.tooling)
    debugImplementation(libs.androidx.ui.test.manifest)
 
 }

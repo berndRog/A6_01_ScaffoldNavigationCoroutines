@@ -7,6 +7,7 @@ import de.rogallab.mobile.data.PeopleRepository
 import de.rogallab.mobile.data.local.DataStore
 import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
+import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.ui.base.BaseViewModel
@@ -14,6 +15,7 @@ import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorResources
 import de.rogallab.mobile.ui.errors.ResourceProvider
 import de.rogallab.mobile.ui.navigation.NavEvent
+import de.rogallab.mobile.ui.navigation.NavScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +35,8 @@ class PeopleViewModel(
    // get error resources from the context
    private val _resourceProvider = ResourceProvider(_context)
    private val _errorResources = ErrorResources(_resourceProvider)
+
+   private var removedPerson: Person? = null
 
    init {
       logDebug(TAG, "init")
@@ -108,11 +112,11 @@ class PeopleViewModel(
    }
 
    fun createPerson() {
-      logDebug(TAG, "createPerson")
+      logDebug(TAG, "createPerson: ${_personUiStateFlow.value.person.id.as8()}")
       when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
          is ResultData.Success -> {
             fetchPeople()
-            navigateTo(NavEvent.ToPeopleList)
+            navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
          }
          is ResultData.Error -> {
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
@@ -121,11 +125,11 @@ class PeopleViewModel(
    }
 
    fun updatePerson() {
-      logDebug(TAG, "updatePerson")
+      logDebug(TAG, "updatePerson: ${_personUiStateFlow.value.person.id.as8()}")
       when(val resultData = _repository.update(_personUiStateFlow.value.person)) {
          is ResultData.Success -> {
             fetchPeople()
-            navigateTo(NavEvent.ToPeopleList)
+            navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
          }
          is ResultData.Error -> {
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
@@ -133,26 +137,31 @@ class PeopleViewModel(
       }
    }
 
-   fun removePerson(personId: String) {
-      logDebug(TAG, "removePerson: $personId")
-      when(val resultData = _repository.remove(personId)) {
+   fun removePerson(person: Person) {
+      logDebug(TAG, "removePerson: ${person.id.as8()}")
+      when(val resultData = _repository.remove(person)) {
          is ResultData.Success -> {
+            removedPerson = person
             fetchPeople()
-            navigateTo(NavEvent.ToPeopleList)
+            navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
          }
          is ResultData.Error -> {
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))         }
       }
    }
 
-   fun undoRemovePerson(person: Person) {
-      logDebug(TAG, "undoRemovePerson: $person")
-      when(val resultData = _repository.create(person)) {
-         is ResultData.Success -> Unit
-         is ResultData.Error -> {
-            val message = "Failed to undo remove a person ${resultData.throwable.localizedMessage}"
-            logError(TAG, message)
-            //showOnError(message = message, navEvent = NavEvent.ToPeopleList)
+   fun undoRemovePerson() {
+      removedPerson?.let { person ->
+         logDebug(TAG, "undoRemovePerson: ${person.id.as8()}")
+         when(val resultData = _repository.create(person)) {
+            is ResultData.Success -> {
+               removedPerson = null
+               fetchPeople()
+               navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
+            }
+            is ResultData.Error -> {
+               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+            }
          }
       }
    }

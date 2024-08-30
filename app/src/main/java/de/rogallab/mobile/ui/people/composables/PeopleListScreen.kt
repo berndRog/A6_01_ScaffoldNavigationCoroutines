@@ -4,9 +4,14 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -30,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.entities.Person
@@ -39,6 +45,7 @@ import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorUiState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
+import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,10 +68,15 @@ fun PeopleListScreen(
       }
    )
 
+   val windowInsets = WindowInsets.systemBars
+      .add(WindowInsets.safeGestures)
+
    val snackbarHostState = remember { SnackbarHostState() }
+
    Scaffold(
       modifier = Modifier
          .fillMaxSize()
+         .padding(windowInsets.asPaddingValues())
          .background(color = MaterialTheme.colorScheme.surface),
       topBar = {
          TopAppBar(
@@ -90,7 +102,7 @@ fun PeopleListScreen(
                // FAB clicked -> InputScreen initialized
                viewModel.clearState()
                logInfo(tag, "Forward Navigation: FAB clicked")
-               viewModel.navigateTo(NavEvent.ToPersonInput)
+               viewModel.navigateTo(NavEvent.NavigateTo(NavScreen.PersonInput.route))
             }
          ) {
             Icon(Icons.Default.Add, "Add a contact")
@@ -108,7 +120,6 @@ fun PeopleListScreen(
       LazyColumn(
          modifier = Modifier
             .padding(paddingValues = paddingValues)
-            .safeContentPadding()
       ) {
          items(
             items = items,
@@ -122,7 +133,8 @@ fun PeopleListScreen(
                imagePath = person.imagePath,
                onClick = {
                   logDebug(tag, "Forward Navigation: PersonDetail")
-                  viewModel.navigateTo(NavEvent.ToPersonDetail(person.id))
+                  viewModel.navigateTo(
+                     NavEvent.NavigateTo(NavScreen.PersonDetail.route+"/${person.id}"))
                }
 
             )

@@ -13,19 +13,10 @@ import de.rogallab.mobile.ui.theme.AppTheme
 class MainActivity : BaseActivity(TAG) {
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
-      // Start Windows insets
-      // https://developer.android.com/develop/ui/compose/layouts/insets
-      enableEdgeToEdge()
-      // use insets to show to snackbar above ime keyboard
-      window?.let { window ->
-         WindowCompat.setDecorFitsSystemWindows(window, false)
-      }
 
       setContent {
          AppTheme {
-            Box(
-
-            ) {
+            Box {
                AppNavHost()
             }
          }
@@ -36,7 +27,6 @@ class MainActivity : BaseActivity(TAG) {
       const val isInfo = true
       const val isDebug = true
       const val isVerbose = true
-      //12345678901234567890123
       private const val TAG = "[MainActivity]"
    }
 }

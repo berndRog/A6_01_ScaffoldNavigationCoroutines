@@ -62,9 +62,9 @@ class PeopleRepository(
       }
    }
 
-   override fun remove(id: String): ResultData<Unit> {
+   override fun remove(person: Person): ResultData<Unit> {
       return try {
-         dataStore.delete(id)
+         dataStore.delete(person.id)
          ResultData.Success(Unit)
       } catch (t: Throwable) {
          ResultData.Error(t)

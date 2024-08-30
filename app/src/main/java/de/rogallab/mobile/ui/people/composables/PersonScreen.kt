@@ -4,11 +4,17 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.utilities.logDebug
@@ -41,6 +48,7 @@ import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorUiState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
+import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.PersonUiState
 
@@ -73,7 +81,7 @@ fun PersonScreen(
          viewModel.onErrorEvent(
             ErrorParams(
                message = "No id for person is given",
-               navEvent = NavEvent.ToPeopleList
+               navEvent = NavEvent.Back
             )
          )
       }
@@ -84,15 +92,23 @@ fun PersonScreen(
       enabled = true,
       onBack = {
          logDebug(tag, "back navigation")
-         viewModel.navigateTo(NavEvent.NavigateBack)
+         viewModel.navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
       }
    )
+
+
+   val windowInsets = WindowInsets.systemBars
+      .add(WindowInsets.ime)
+      .add(WindowInsets.safeGestures)
 
    val snackbarHostState = remember { SnackbarHostState() }
 
    Scaffold(
       modifier = Modifier
          .fillMaxSize()
+         .verticalScroll(state = rememberScrollState())
+         .padding(windowInsets.asPaddingValues())
+         .padding(horizontal = 8.dp)
          .background(color = MaterialTheme.colorScheme.surface),
       topBar = {
          TopAppBar(
