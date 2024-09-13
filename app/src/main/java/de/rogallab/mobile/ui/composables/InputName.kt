@@ -25,6 +25,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import de.rogallab.mobile.domain.utilities.logDebug
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -50,9 +51,6 @@ fun InputName(
    // local error state
    var isError by rememberSaveable { mutableStateOf(false) }
    var errorText by rememberSaveable { mutableStateOf("") }
-   // debounce job
-   var debounceJob: Job? by remember { mutableStateOf(null) }
-   val coroutineScope = rememberCoroutineScope()
 
    // Reusable Validation Functions: Validate the input when it changes
    val validate: (String) -> Unit = { input ->
@@ -68,19 +66,18 @@ fun InputName(
    OutlinedTextField(
       modifier = Modifier.fillMaxWidth()
          .onFocusChanged { focusState ->
-            if (!focusState.isFocused && isFocus) validate(name)
+            // debounce validation until the user stops typing
+            // to avoid excessive recompositions
+            if (!focusState.isFocused && isFocus) {
+               logDebug("[InputName]","validate called: $name")
+               validate(name)
+            }
             isFocus = focusState.isFocused
          },
-      value = name,                 // State ↓
-      onValueChange = {
-         onNameChange(it)           // Event ↑
-         // Delay validation until the user stops typing to avoid excessive recompositions.
-         debounceJob?.cancel()
-         debounceJob = coroutineScope.launch {
-            delay(300)
-            validate(it)
-         }
-      },
+
+      value = name,                          // State ↓
+      onValueChange = { onNameChange(it) },  // Event ↑
+
       label = { Text(text = label) },
       textStyle = MaterialTheme.typography.bodyLarge,
       leadingIcon = {

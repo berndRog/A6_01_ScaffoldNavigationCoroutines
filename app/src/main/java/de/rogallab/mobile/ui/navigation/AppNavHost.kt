@@ -76,9 +76,9 @@ fun AppNavHost(
                // popUpTo() clears the back stack up to the given route
                // inclusive = true -> ensures that any previous instances of
                // that route are removed
-               popUpTo(navEvent.route) {
-                  inclusive = true
-               }
+//               popUpTo(navEvent.route) {
+//                  inclusive = false
+//               }
             }
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
@@ -87,6 +87,7 @@ fun AppNavHost(
          is NavEvent.Back -> {
             // navigateUp() pops the back stack to the previous destination
             navController.popBackStack()
+
             peopleViewModel.onNavEventHandled()
          }
       }
@@ -110,16 +111,14 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransition(
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnterTransition(
    duration: Int
-) = fadeIn(animationSpec = tween(2000))
-// + slideIntoContainer(
-//   animationSpec = tween(duration),
-//   towards = AnimatedContentTransitionScope.SlideDirection.Down
-//)
+) = fadeIn(animationSpec = tween(duration)) + slideIntoContainer(
+   animationSpec = tween(duration),
+   towards = AnimatedContentTransitionScope.SlideDirection.Up
+)
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popExitTransition(
    duration: Int
-) = fadeOut(animationSpec = tween(2000))
-//+ slideOutOfContainer(
-//   animationSpec = tween(duration),
-//   towards = AnimatedContentTransitionScope.SlideDirection.Down
-//)
+) = fadeOut(animationSpec = tween(duration)) + slideOutOfContainer(
+   animationSpec = tween(duration),
+   towards = AnimatedContentTransitionScope.SlideDirection.Up
+)

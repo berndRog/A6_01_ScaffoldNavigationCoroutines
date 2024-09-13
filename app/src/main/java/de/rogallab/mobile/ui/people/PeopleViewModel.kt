@@ -9,11 +9,10 @@ import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
-import de.rogallab.mobile.domain.utilities.logError
+import de.rogallab.mobile.ui.ResourceProvider
 import de.rogallab.mobile.ui.base.BaseViewModel
 import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorResources
-import de.rogallab.mobile.ui.errors.ResourceProvider
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import kotlinx.coroutines.delay
@@ -45,7 +44,6 @@ class PeopleViewModel(
          delay(100)
          fetchPeople()
       }
-
    }
 
    // Data Binding PeopleListScreen <=> PersonViewModel
@@ -170,11 +168,19 @@ class PeopleViewModel(
       _personUiStateFlow.update { it.copy(person = Person()) }
    }
 
-   fun validateName(name: String): Pair<Boolean, String> =
+   fun validateFirstname(name: String): Pair<Boolean, String> =
       if (name.isEmpty() || name.length < _errorResources.charMin)
-         Pair(true, _errorResources.nameTooShort)
+         Pair(true, _errorResources.firstnameTooShort)
       else if (name.length > _errorResources.charMax )
-         Pair(true, _errorResources.nameTooLong)
+         Pair(true, _errorResources.firstnameTooLong)
+      else
+         Pair(false, "")
+
+   fun validateLastname(name: String): Pair<Boolean, String> =
+      if (name.isEmpty() || name.length < _errorResources.charMin)
+         Pair(true, _errorResources.lastnameTooShort)
+      else if (name.length > _errorResources.charMax )
+         Pair(true, _errorResources.lastnameTooLong)
       else
          Pair(false, "")
 
@@ -189,8 +195,8 @@ class PeopleViewModel(
 
    fun validatePhone(phone: String?): Pair<Boolean, String> {
       phone?.let {
-         when (android.util.Patterns.PHONE.matcher(it).matches()) {
-            true -> return Pair(false,"")   // email ok
+         when (Patterns.PHONE.matcher(it).matches()) {
+            true -> return Pair(false,"")   // phone ok
             false -> return Pair(true, _errorResources.phoneInValid)
          }
       } ?: return Pair(false, "")
@@ -208,23 +214,28 @@ class PeopleViewModel(
       val charMax = _errorResources.charMax
 
       val person = _personUiStateFlow.value.person
-      // firstName or lastName too short
+
+      // firstName or lastName too short or to long
       if (person.firstName.isEmpty() || person.firstName.length < charMin) {
-         onErrorEvent(ErrorParams(message = _errorResources.nameTooShort, navEvent = null))
+         onErrorEvent(ErrorParams(message = _errorResources.firstnameTooShort, navEvent = null))
       }
       else if (person.firstName.length > charMax) {
-         onErrorEvent(ErrorParams(message = _errorResources.nameTooLong, navEvent = null))
+         onErrorEvent(ErrorParams(message = _errorResources.firstnameTooLong, navEvent = null))
       }
       else if (person.lastName.isEmpty() || person.lastName.length < charMin) {
-         onErrorEvent(ErrorParams(message = _errorResources.nameTooShort, navEvent = null))
+         onErrorEvent(ErrorParams(message = _errorResources.lastnameTooShort, navEvent = null))
       }
       else if (person.lastName.length > charMax) {
-         onErrorEvent(ErrorParams(message = _errorResources.nameTooLong, navEvent = null))
+         onErrorEvent(ErrorParams(message = _errorResources.lastnameTooLong, navEvent = null))
       }
+
+      // email not valid
       else if (person.email != null &&
          !Patterns.EMAIL_ADDRESS.matcher(person.email).matches()) {
          onErrorEvent(ErrorParams(message = _errorResources.emailInValid, navEvent = null))
       }
+
+      // phone not valid
       else if (person.phone != null &&
          !Patterns.PHONE.matcher(person.phone).matches()) {
          onErrorEvent(ErrorParams(message = _errorResources.phoneInValid, navEvent = null))

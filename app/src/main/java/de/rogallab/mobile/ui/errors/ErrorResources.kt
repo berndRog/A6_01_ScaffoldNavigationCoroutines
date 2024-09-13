@@ -1,6 +1,7 @@
 package de.rogallab.mobile.ui.errors
 
 import de.rogallab.mobile.R
+import de.rogallab.mobile.ui.ResourceProvider
 
 class ErrorResources(
    resourceProvider: ResourceProvider
@@ -8,8 +9,10 @@ class ErrorResources(
    val charMin: Int = resourceProvider.getString(R.string.errorCharMin).toInt()
    val charMax: Int = resourceProvider.getString(R.string.errorCharMax).toInt()
 
-   val nameTooShort:  String = resourceProvider.getString(R.string.errorNameTooShort)
-   val nameTooLong: String = resourceProvider.getString(R.string.errorNameTooLong)
+   val firstnameTooShort:  String = resourceProvider.getString(R.string.errorFirstnameTooShort)
+   val firstnameTooLong: String = resourceProvider.getString(R.string.errorFirstnameTooLong)
+   val lastnameTooShort:  String = resourceProvider.getString(R.string.errorLastNameTooShort)
+   val lastnameTooLong: String = resourceProvider.getString(R.string.errorLastNameTooLong)
    val emailInValid: String = resourceProvider.getString(R.string.errorEmail)
    val phoneInValid: String = resourceProvider.getString(R.string.errorPhone)
 }

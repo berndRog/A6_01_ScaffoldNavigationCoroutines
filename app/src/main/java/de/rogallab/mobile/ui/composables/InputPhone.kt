@@ -31,7 +31,7 @@ fun InputPhone(
    phone: String?,                                    // State ↓
    onPhoneChange: (String) -> Unit,                   // Event ↑
    validatePhone: (String?) -> Pair<Boolean, String>, // Event ↑
-   label: String  = stringResource(R.string.phone),        // State ↓
+   label: String  = stringResource(R.string.phone),   // State ↓
 ) {
 
    var isError by rememberSaveable { mutableStateOf(false) }

@@ -25,10 +25,9 @@ kotlin {
    jvmToolchain(17)
 }
 
-
 android {
    namespace = "de.rogallab.mobile"
-   compileSdk = 34
+   compileSdk = 35
 
    defaultConfig {
       applicationId = "de.rogallab.mobile"

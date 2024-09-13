@@ -23,7 +23,8 @@ fun PersonCard(
 ) {
 
    Card(
-      modifier = modifier.fillMaxWidth()
+      modifier = modifier.fillMaxWidth(),
+
    ) {
       Column(
          modifier = Modifier

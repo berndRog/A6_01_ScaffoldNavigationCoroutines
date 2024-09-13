@@ -30,10 +30,10 @@ import de.rogallab.mobile.R
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun InputEmail(
-   email: String?,                                    // State ↓
-   onEmailChange: (String) -> Unit,                   // Event ↑
-   validateEmail: (String?) -> Pair<Boolean, String>, // Event ↑
-   label: String = stringResource(R.string.email),    // State ↓
+   email: String?,                                       // State ↓
+   onEmailChange: (String) -> Unit,                      // Event ↑
+   validateEmail: (String?) -> Pair<Boolean, String>,    // Event ↑
+   label: String = stringResource(R.string.email),// State ↓
 ) {
    var isError by rememberSaveable { mutableStateOf(false) }
    var errorText by rememberSaveable { mutableStateOf("") }

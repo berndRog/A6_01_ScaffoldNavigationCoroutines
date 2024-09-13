@@ -7,12 +7,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.utilities.logDebug
+import de.rogallab.mobile.domain.utilities.logInfo
 import de.rogallab.mobile.ui.composables.InputEmail
 import de.rogallab.mobile.ui.composables.InputName
 import de.rogallab.mobile.ui.composables.InputPhone
@@ -48,7 +50,6 @@ import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorUiState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
-import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.PersonUiState
 
@@ -87,17 +88,14 @@ fun PersonScreen(
       }
    }
 
-   // Back navigation
-   BackHandler(
-      enabled = true,
-      onBack = {
-         logDebug(tag, "back navigation")
-         viewModel.navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
-      }
-   )
+   BackHandler{
+      logInfo(tag, "BackHandler -> navigate to Peoplelist")
+      viewModel.navigateTo(NavEvent.Back)
+   }
 
 
    val windowInsets = WindowInsets.systemBars
+      .add(WindowInsets.captionBar)
       .add(WindowInsets.ime)
       .add(WindowInsets.safeGestures)
 
@@ -106,9 +104,7 @@ fun PersonScreen(
    Scaffold(
       modifier = Modifier
          .fillMaxSize()
-         .verticalScroll(state = rememberScrollState())
          .padding(windowInsets.asPaddingValues())
-         .padding(horizontal = 8.dp)
          .background(color = MaterialTheme.colorScheme.surface),
       topBar = {
          TopAppBar(
@@ -135,22 +131,22 @@ fun PersonScreen(
       Column(
          modifier = Modifier
             .padding(paddingValues)
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .safeContentPadding()
             .imePadding() // padding for the bottom for the IME
       ) {
          InputName(
             name = personUiState.person.firstName,          // State ↓
             onNameChange = viewModel::onFirstNameChange,    // Event ↑
-            label = stringResource(R.string.firstName),              // State ↓
-            validateName = viewModel::validateName,         // Event ↑
+            label = stringResource(R.string.firstname),     // State ↓
+            validateName = viewModel::validateFirstname,    // Event ↑
          )
          InputName(
             name = personUiState.person.lastName,           // State ↓
             onNameChange = viewModel::onLastNameChange,     // Event ↑
-            label = stringResource(R.string.lastName),             // State ↓
-            validateName = viewModel::validateName,         // Event ↑
+            label = stringResource(R.string.lastname),      // State ↓
+            validateName = viewModel::validateLastname,     // Event ↑
          )
          InputEmail(
             email = personUiState.person.email,             // State ↓
@@ -159,7 +155,7 @@ fun PersonScreen(
          )
          InputPhone(
             phone = personUiState.person.phone,             // State ↓
-            onPhoneChange = viewModel::onPhoneChange,        // Event ↑
+            onPhoneChange = viewModel::onPhoneChange,       // Event ↑
             validatePhone = viewModel::validatePhone        // Event ↑
          )
 
@@ -170,13 +166,8 @@ fun PersonScreen(
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
          logDebug(tag, "ErrorUiState: ${errorState.params}")
-         // close the keyboard
-         //val ime = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-         //ime.hideSoftInputFromWindow(view.windowToken, 0)
-
          // show the error with a snackbar
          showError(snackbarHostState, params, viewModel::navigateTo )
-
          // reset the errorState, params are copied to showError
          viewModel.onErrorEventHandled()
 
