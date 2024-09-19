@@ -247,6 +247,6 @@ class PeopleViewModel(
    }
 
    companion object {
-      private const val TAG = "[PeopleViewModel]"
+      private const val TAG = "<-PeopleViewModel"
    }
 }

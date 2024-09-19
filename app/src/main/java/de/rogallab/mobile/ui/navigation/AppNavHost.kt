@@ -26,7 +26,7 @@ fun AppNavHost(
    // Injecting the ViewModel by koin()
    peopleViewModel: PeopleViewModel = viewModel()
 ) {
-   val tag = "[AppNavHost]"
+   val tag = "<-AppNavHost"
    val duration = 1000  // in milliseconds
 
    NavHost(

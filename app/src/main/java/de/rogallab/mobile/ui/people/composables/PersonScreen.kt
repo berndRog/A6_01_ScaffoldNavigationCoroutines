@@ -70,8 +70,8 @@ fun PersonScreen(
       if (isInputMode) stringResource(R.string.person_input)
       else stringResource(R.string.person_detail)
    val tag =
-      if (isInputMode) "[PersonInputScreen]"
-      else "[PersonDetailScreen]"
+      if (isInputMode) "<-PersonInputScreen"
+      else "<-PersonDetailScreen"
    // DetailScreen
    if (!isInputMode) {
       id?.let { it: String ->

@@ -28,10 +28,10 @@ class MainActivity : BaseActivity(TAG) {
    }
 
    companion object {
-      const val isInfo = true
-      const val isDebug = true
-      const val isVerbose = true
-      private const val TAG = "[MainActivity]"
+      const val ISINFO = true
+      const val ISDEBUG = true
+      const val ISVERBOSE = true
+      private const val TAG = "<-MainActivity"
    }
 }
 @Preview(showBackground = true)

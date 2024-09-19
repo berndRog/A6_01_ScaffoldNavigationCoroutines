@@ -53,7 +53,7 @@ import de.rogallab.mobile.ui.people.PeopleViewModel
 fun PeopleListScreen(
    viewModel: PeopleViewModel
 ) {
-   val tag = "[PeopleListScreen]"
+   val tag = "<-PeopleListScreen"
 
    // Observe the peopleUiState of the viewmodel
    val peopleUiState by viewModel.peopleUiStateFlow.collectAsStateWithLifecycle()
