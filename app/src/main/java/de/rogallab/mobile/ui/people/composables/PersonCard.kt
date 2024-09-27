@@ -35,18 +35,14 @@ fun PersonCard(
             text = "$firstName $lastName",
             style = MaterialTheme.typography.bodyLarge,
          )
-         email?.let {
-            Text(
-               text = it,
-               style = MaterialTheme.typography.bodyMedium
-            )
-         }
-         phone?.let {
-            Text(
-               text = phone,
-               style = MaterialTheme.typography.bodyMedium,
-            )
-         }
+         Text(
+            text = email ?: "",
+            style = MaterialTheme.typography.bodyMedium
+         )
+         Text(
+            text = phone ?:"",
+            style = MaterialTheme.typography.bodyMedium,
+         )
       }
    }
 }

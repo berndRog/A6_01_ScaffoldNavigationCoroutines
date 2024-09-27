@@ -1,7 +1,6 @@
 package de.rogallab.mobile.ui.base
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.rogallab.mobile.domain.utilities.logDebug
@@ -21,7 +20,7 @@ import kotlin.coroutines.cancellation.CancellationException
 open class BaseViewModel(
    application: Application,
    private val _tag: String
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
    // Error  State = ViewModel (one time) events
    private val _errorUiStateFlow: MutableStateFlow<ErrorUiState> = MutableStateFlow(ErrorUiState())
@@ -81,7 +80,7 @@ open class BaseViewModel(
    // prevent multiple navigation events
    private var navEvent: NavEvent? = null
 
-   fun navigateTo(event: NavEvent) {
+   fun navigate(event: NavEvent) {
       logVerbose(_tag, "navigateTo() event:${event.toString()}")
       if (event == navEvent) return
       navEvent = event

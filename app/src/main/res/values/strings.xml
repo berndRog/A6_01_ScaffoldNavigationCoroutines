@@ -19,4 +19,5 @@
   <string name="back">Back</string>
   <string name="undoDeletePerson">Are you sure you want to delete this person?</string>
   <string name="undoAnswer">no</string>
+  <string name="app_name">ScaffoldNavigation</string>
 </resources>

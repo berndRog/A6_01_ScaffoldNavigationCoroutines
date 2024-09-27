@@ -39,7 +39,15 @@ class PeopleViewModel(
 
    init {
       logDebug(TAG, "init")
-      _repository.readDataStore()
+
+      when(val resultData = _repository.readDataStore()) {
+         is ResultData.Success -> {
+            logDebug(TAG, "ReadDataStore() with success")
+         }
+         is ResultData.Error -> {
+            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+         }
+      }
       viewModelScope.launch {
          delay(100)
          fetchPeople()
@@ -98,40 +106,31 @@ class PeopleViewModel(
    fun fetchPerson(personId: String) {
       logDebug(TAG, "fetchPersonById: $personId")
       when (val resultData = _repository.findById(personId)) {
-         is ResultData.Success -> {
-            _personUiStateFlow.update { it: PersonUiState ->
-               it.copy(person = resultData.data ?: Person())  // new UiState
-            }
+         is ResultData.Success -> _personUiStateFlow.update { it: PersonUiState ->
+            it.copy(person = resultData.data ?: Person())  // new UiState
          }
-         is ResultData.Error -> {
+         is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
-         }
       }
    }
 
    fun createPerson() {
       logDebug(TAG, "createPerson: ${_personUiStateFlow.value.person.id.as8()}")
       when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
-         is ResultData.Success -> {
+         is ResultData.Success ->
             fetchPeople()
-            navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
-         }
-         is ResultData.Error -> {
+         is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
-         }
       }
    }
 
    fun updatePerson() {
       logDebug(TAG, "updatePerson: ${_personUiStateFlow.value.person.id.as8()}")
       when(val resultData = _repository.update(_personUiStateFlow.value.person)) {
-         is ResultData.Success -> {
+         is ResultData.Success ->
             fetchPeople()
-            navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
-         }
-         is ResultData.Error -> {
+         is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
-         }
       }
    }
 
@@ -141,11 +140,9 @@ class PeopleViewModel(
          is ResultData.Success -> {
             removedPerson = person
             fetchPeople()
-            navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
          }
-         is ResultData.Error -> {
+         is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))         }
-      }
    }
 
    fun undoRemovePerson() {
@@ -155,11 +152,9 @@ class PeopleViewModel(
             is ResultData.Success -> {
                removedPerson = null
                fetchPeople()
-               navigateTo(NavEvent.NavigateTo(NavScreen.PeopleList.route))
             }
-            is ResultData.Error -> {
+            is ResultData.Error ->
                onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
-            }
          }
       }
    }

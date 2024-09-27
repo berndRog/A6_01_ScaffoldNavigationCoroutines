@@ -3,6 +3,8 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,8 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import de.rogallab.mobile.domain.utilities.logInfo
-import de.rogallab.mobile.ui.people.composables.PeopleSwipeListScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.composables.PeopleListScreen
 import de.rogallab.mobile.ui.people.composables.PersonScreen
 
 @Composable
@@ -27,7 +29,7 @@ fun AppNavHost(
    peopleViewModel: PeopleViewModel = viewModel()
 ) {
    val tag = "<-AppNavHost"
-   val duration = 1000  // in milliseconds
+   val duration = 8000  // in milliseconds
 
    NavHost(
       navController = navController,
@@ -38,7 +40,7 @@ fun AppNavHost(
       popExitTransition = { popExitTransition(duration) }
    ) {
       composable( route = NavScreen.PeopleList.route ) {
-         PeopleSwipeListScreen(
+         PeopleListScreen(
             viewModel = peopleViewModel
          )
       }
@@ -67,27 +69,33 @@ fun AppNavHost(
    val navUiState: NavUiState by peopleViewModel.navUiStateFlow.collectAsStateWithLifecycle()
    navUiState.event?.let { navEvent: NavEvent ->
       logInfo(tag, "navEvent: $navEvent")
+
       when(navEvent) {
 
-         is NavEvent.NavigateTo -> {
+         is NavEvent.NavigateForward -> {
             // Each navigate() pushes the given destination
             // to the top of the stack.
-            navController.navigate(navEvent.route) {
-               // popUpTo() clears the back stack up to the given route
-               // inclusive = true -> ensures that any previous instances of
-               // that route are removed
-//               popUpTo(navEvent.route) {
-//                  inclusive = false
-//               }
-            }
+            navController.navigate(navEvent.route)
+
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
 
-         is NavEvent.Back -> {
-            // navigateUp() pops the back stack to the previous destination
+         is NavEvent.NavigateReverse -> {
+            navController.navigate(navEvent.route) {
+               popUpTo(navEvent.route) {  // clears the back stack up to the given route
+                  inclusive = true        // ensures that any previous instances of
+               }                          // that route are removed
+            }
+
+            // onNavEventHandled() resets the navEvent to null
+            peopleViewModel.onNavEventHandled()
+         }
+
+         is NavEvent.NavigateBack -> {
             navController.popBackStack()
 
+            // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
       }
@@ -97,28 +105,33 @@ fun AppNavHost(
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(
    duration: Int
-) = fadeIn(animationSpec = tween(duration)) + slideIntoContainer(
-      animationSpec = tween(duration),
-      towards = AnimatedContentTransitionScope.SlideDirection.Left
-   )
+) = fadeIn(
+   animationSpec = tween(duration)
+) + slideIntoContainer(
+   animationSpec = tween(duration),
+   towards = AnimatedContentTransitionScope.SlideDirection.Right
+)
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransition(
    duration: Int
-) = fadeOut(animationSpec = tween(duration)) + slideOutOfContainer(
-         animationSpec = tween(duration),
-         towards = AnimatedContentTransitionScope.SlideDirection.Left
-      )
+) = fadeOut(
+   animationSpec = tween(duration)
+) + slideOutOfContainer(
+   animationSpec = tween(duration),
+   towards = AnimatedContentTransitionScope.SlideDirection.Right
+)
+
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnterTransition(
    duration: Int
-) = fadeIn(animationSpec = tween(duration)) + slideIntoContainer(
-   animationSpec = tween(duration),
-   towards = AnimatedContentTransitionScope.SlideDirection.Up
-)
+) = scaleIn(
+   initialScale = 0.1f,
+   animationSpec = tween(duration)
+) + fadeIn(animationSpec = tween(duration))
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popExitTransition(
    duration: Int
-) = fadeOut(animationSpec = tween(duration)) + slideOutOfContainer(
-   animationSpec = tween(duration),
-   towards = AnimatedContentTransitionScope.SlideDirection.Up
-)
+) = scaleOut(
+   targetScale = 3.0f,
+   animationSpec = tween(duration)
+) + fadeOut(animationSpec = tween(duration))

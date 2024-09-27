@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
@@ -50,6 +49,7 @@ import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorUiState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
+import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.PersonUiState
 
@@ -82,7 +82,7 @@ fun PersonScreen(
          viewModel.onErrorEvent(
             ErrorParams(
                message = "No id for person is given",
-               navEvent = NavEvent.Back
+               navEvent = NavEvent.NavigateBack(NavScreen.PeopleList.route)
             )
          )
       }
@@ -90,7 +90,7 @@ fun PersonScreen(
 
    BackHandler{
       logInfo(tag, "BackHandler -> navigate to Peoplelist")
-      viewModel.navigateTo(NavEvent.Back)
+      viewModel.navigate(NavEvent.NavigateBack(NavScreen.PeopleList.route))
    }
 
 
@@ -111,8 +111,9 @@ fun PersonScreen(
             title = { Text(text = screenTitle) },
             navigationIcon = {
                IconButton(onClick = {
-                  logDebug(tag, "Up (reverse) navigation")
+                  logDebug(tag, "Reverse navigation -> PeopleList")
                   viewModel.validate(isInputMode)
+                  viewModel.navigate(NavEvent.NavigateReverse(NavScreen.PeopleList.route))
                }) {
                   Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                      contentDescription = stringResource(R.string.back))
@@ -167,10 +168,12 @@ fun PersonScreen(
       errorState.params?.let { params: ErrorParams ->
          logDebug(tag, "ErrorUiState: ${errorState.params}")
          // show the error with a snackbar
-         showError(snackbarHostState, params, viewModel::navigateTo )
+         showError(snackbarHostState, params, viewModel::navigate )
          // reset the errorState, params are copied to showError
          viewModel.onErrorEventHandled()
 
       }
    }
 }
+
+
