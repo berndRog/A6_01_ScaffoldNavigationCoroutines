@@ -55,6 +55,7 @@ import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.PersonIntent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +110,7 @@ fun PeopleListScreen(
             containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
                // FAB clicked -> InputScreen initialized
-               viewModel.clearState()
+               viewModel.onProcessIntent(PersonIntent.Clear)
                logInfo(tag, "Forward Navigation -> PersonInput")
                viewModel.navigate(NavEvent.NavigateForward(NavScreen.PersonInput.route))
             }
@@ -150,7 +151,7 @@ fun PeopleListScreen(
                         //}
                         return@rememberSwipeToDismissBoxState true
                      } else if (swipe == SwipeToDismissBoxValue.EndToStart) {
-                        viewModel.removePerson(person)
+                        viewModel.onProcessIntent(PersonIntent.Remove(person))
                         // undo remove?
                         viewModel.onErrorEvent(
                            params = ErrorParams(
@@ -158,7 +159,7 @@ fun PeopleListScreen(
                               actionLabel = undoAnswer,
                               duration = SnackbarDuration.Short,
                               withDismissAction = false,
-                              onDismissAction = viewModel::undoRemovePerson,
+                              onDismissAction = { viewModel.onProcessIntent(PersonIntent.UndoRemove) },
                               navEvent = NavEvent.NavigateForward(route = NavScreen.PeopleList.route)
                            )
                         )

@@ -51,6 +51,7 @@ import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.PersonIntent
 import de.rogallab.mobile.ui.people.PersonUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +77,7 @@ fun PersonScreen(
    if (!isInputMode) {
       id?.let { it: String ->
          LaunchedEffect(Unit) {
-            viewModel.fetchPerson(it)
+            viewModel.onProcessIntent(PersonIntent.FetchById(it))
          }
       } ?: run {
          viewModel.onErrorEvent(
@@ -139,25 +140,29 @@ fun PersonScreen(
       ) {
          InputName(
             name = personUiState.person.firstName,          // State ↓
-            onNameChange = viewModel::onFirstNameChange,    // Event ↑
-            label = stringResource(R.string.firstname),     // State ↓
-            validateName = viewModel::validateFirstname,    // Event ↑
+            onNameChange = { firstName: String ->           // Event ↑
+               viewModel.onProcessIntent(PersonIntent.FirstNameChange(firstName)) },
+            label = stringResource(R.string.firstname),            // State ↓
+            validateName = viewModel::validateFirstName,    // Event ↑ no state change
          )
          InputName(
             name = personUiState.person.lastName,           // State ↓
-            onNameChange = viewModel::onLastNameChange,     // Event ↑
-            label = stringResource(R.string.lastname),      // State ↓
-            validateName = viewModel::validateLastname,     // Event ↑
+            onNameChange = { lastName: String ->            // Event ↑
+               viewModel.onProcessIntent(PersonIntent.LastNameChange(lastName)) },
+            label = stringResource(R.string.lastname),             // State ↓
+            validateName = viewModel::validateLastName,     // Event ↑ no state change
          )
          InputEmail(
             email = personUiState.person.email,             // State ↓
-            onEmailChange = viewModel::onEmailChange,       // Event ↑
-            validateEmail = viewModel::validateEmail        // Event ↑
+            onEmailChange = { email:String ->               // Event ↑
+               viewModel.onProcessIntent(PersonIntent.EmailChange(email)) },
+            validateEmail = viewModel::validateEmail        // Event ↑ no state change
          )
          InputPhone(
             phone = personUiState.person.phone,             // State ↓
-            onPhoneChange = viewModel::onPhoneChange,       // Event ↑
-            validatePhone = viewModel::validatePhone        // Event ↑
+            onPhoneChange = { phone:String ->               // Event ↑
+               viewModel.onProcessIntent(PersonIntent.PhoneChange(phone)) },
+            validatePhone = viewModel::validatePhone        // Event ↑ no state change
          )
 
       } // Column

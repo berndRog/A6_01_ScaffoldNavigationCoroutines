@@ -13,11 +13,8 @@ import de.rogallab.mobile.ui.ResourceProvider
 import de.rogallab.mobile.ui.base.BaseViewModel
 import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorResources
-import de.rogallab.mobile.ui.navigation.NavEvent
-import de.rogallab.mobile.ui.navigation.NavScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -50,16 +47,28 @@ class PeopleViewModel(
       }
       viewModelScope.launch {
          delay(100)
-         fetchPeople()
+         fetch()
       }
    }
 
+   // ===============================
+   // S T A T E   C H A N G E S
+   // ===============================
+
    // Data Binding PeopleListScreen <=> PersonViewModel
-   private val _peopleUiStateFlow: MutableStateFlow<PeopleUiState> = MutableStateFlow(PeopleUiState())
-   val peopleUiStateFlow: StateFlow<PeopleUiState> = _peopleUiStateFlow.asStateFlow()
+   private val _peopleUiStateFlow = MutableStateFlow(PeopleUiState())
+   val peopleUiStateFlow = _peopleUiStateFlow.asStateFlow()
+
+
+   // transform intent into an action
+   fun onProcessIntent(intent: PeopleIntent) {
+      when (intent) {
+         is PeopleIntent.Fetch -> fetch()
+      }
+   }
 
    // read all people from repository
-   fun fetchPeople() {
+   private fun fetch() {
       logDebug(TAG, "fetchPeople")
       when (val resultData = _repository.getAll()) {
          is ResultData.Success -> {
@@ -75,35 +84,53 @@ class PeopleViewModel(
    }
 
    // Data Binding PersonScreen <=> PersonViewModel
-   private val _personUiStateFlow: MutableStateFlow<PersonUiState> = MutableStateFlow(PersonUiState())
-   val personUiStateFlow: StateFlow<PersonUiState> = _personUiStateFlow.asStateFlow()
+   private val _personUiStateFlow = MutableStateFlow(PersonUiState())
+   val personUiStateFlow = _personUiStateFlow.asStateFlow()
 
-   fun onFirstNameChange(firstName: String) {
+   // transform intent into an action
+   fun onProcessIntent(intent: PersonIntent) {
+      when (intent) {
+         is PersonIntent.FirstNameChange -> onFirstNameChange(intent.firstName)
+         is PersonIntent.LastNameChange -> onLastNameChange(intent.lastName)
+         is PersonIntent.EmailChange -> onEmailChange(intent.email)
+         is PersonIntent.PhoneChange -> onPhoneChange(intent.phone)
+
+         is PersonIntent.Clear -> clearState()
+
+         is PersonIntent.FetchById -> fetchById(intent.id)
+         is PersonIntent.Create -> create()
+         is PersonIntent.Update -> update()
+         is PersonIntent.Remove -> remove(intent.person)
+         is PersonIntent.UndoRemove -> undoRemove()
+      }
+   }
+
+   private fun onFirstNameChange(firstName: String) {
       if (firstName == _personUiStateFlow.value.person.firstName) return
       _personUiStateFlow.update { it: PersonUiState ->
          it.copy(person = it.person.copy(firstName = firstName))
       }
    }
-   fun onLastNameChange(lastName: String) {
+   private fun onLastNameChange(lastName: String) {
       if (lastName == _personUiStateFlow.value.person.lastName) return
       _personUiStateFlow.update { it: PersonUiState ->
          it.copy(person = it.person.copy(lastName = lastName))
       }
    }
-   fun onEmailChange(email: String?) {
+   private fun onEmailChange(email: String?) {
       if (email == null || email == _personUiStateFlow.value.person.email) return
       _personUiStateFlow.update { it: PersonUiState ->
          it.copy(person = it.person.copy(email = email))
       }
    }
-   fun onPhoneChange(phone: String?) {
+   private fun onPhoneChange(phone: String?) {
       if (phone == null || phone == _personUiStateFlow.value.person.phone) return
       _personUiStateFlow.update { it: PersonUiState ->
          it.copy(person = it.person.copy(phone = phone))
       }
    }
 
-   fun fetchPerson(personId: String) {
+   private fun fetchById(personId: String) {
       logDebug(TAG, "fetchPersonById: $personId")
       when (val resultData = _repository.findById(personId)) {
          is ResultData.Success -> _personUiStateFlow.update { it: PersonUiState ->
@@ -113,45 +140,41 @@ class PeopleViewModel(
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
       }
    }
-
-   fun createPerson() {
+   private fun create() {
       logDebug(TAG, "createPerson: ${_personUiStateFlow.value.person.id.as8()}")
       when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
          is ResultData.Success ->
-            fetchPeople()
+            fetch()
          is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
       }
    }
-
-   fun updatePerson() {
+   private fun update() {
       logDebug(TAG, "updatePerson: ${_personUiStateFlow.value.person.id.as8()}")
       when(val resultData = _repository.update(_personUiStateFlow.value.person)) {
          is ResultData.Success ->
-            fetchPeople()
+            fetch()
          is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
       }
    }
-
-   fun removePerson(person: Person) {
+   private fun remove(person: Person) {
       logDebug(TAG, "removePerson: ${person.id.as8()}")
-      when(val resultData = _repository.remove(person)) {
+      when(val resultData = _repository.remove(person.id)) {
          is ResultData.Success -> {
             removedPerson = person
-            fetchPeople()
+            fetch()
          }
          is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))         }
    }
-
-   fun undoRemovePerson() {
+   private fun undoRemove() {
       removedPerson?.let { person ->
          logDebug(TAG, "undoRemovePerson: ${person.id.as8()}")
          when(val resultData = _repository.create(person)) {
             is ResultData.Success -> {
                removedPerson = null
-               fetchPeople()
+               fetch()
             }
             is ResultData.Error ->
                onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
@@ -159,22 +182,27 @@ class PeopleViewModel(
       }
    }
 
-   fun clearState() {
+   private fun clearState() {
       _personUiStateFlow.update { it.copy(person = Person()) }
    }
 
-   fun validateFirstname(name: String): Pair<Boolean, String> =
-      if (name.isEmpty() || name.length < _errorResources.charMin)
+   // ===============================
+   // N O   S T A T E   C H A N G E S
+   // ===============================
+   // Validation is unrelated to state management and simply returns a result
+   // We can call the validation function directly in the Composables
+   fun validateFirstName(firstName: String): Pair<Boolean, String> =
+      if (firstName.isEmpty() || firstName.length < _errorResources.charMin)
          Pair(true, _errorResources.firstnameTooShort)
-      else if (name.length > _errorResources.charMax )
+      else if (firstName.length > _errorResources.charMax )
          Pair(true, _errorResources.firstnameTooLong)
       else
          Pair(false, "")
 
-   fun validateLastname(name: String): Pair<Boolean, String> =
-      if (name.isEmpty() || name.length < _errorResources.charMin)
+   fun validateLastName(lastName: String): Pair<Boolean, String> =
+      if (lastName.isEmpty() || lastName.length < _errorResources.charMin)
          Pair(true, _errorResources.lastnameTooShort)
-      else if (name.length > _errorResources.charMax )
+      else if (lastName.length > _errorResources.charMax )
          Pair(true, _errorResources.lastnameTooLong)
       else
          Pair(false, "")
@@ -236,8 +264,8 @@ class PeopleViewModel(
          onErrorEvent(ErrorParams(message = _errorResources.phoneInValid, navEvent = null))
       }
       else {
-         if (isInput) this.createPerson()
-         else         this.updatePerson()
+         if (isInput) this.create()
+         else         this.update()
       }
    }
 
