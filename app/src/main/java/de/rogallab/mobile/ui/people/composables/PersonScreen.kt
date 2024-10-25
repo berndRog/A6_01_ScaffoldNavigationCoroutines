@@ -176,7 +176,6 @@ fun PersonScreen(
          showError(snackbarHostState, params, viewModel::navigate )
          // reset the errorState, params are copied to showError
          viewModel.onErrorEventHandled()
-
       }
    }
 }

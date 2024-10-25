@@ -8,7 +8,6 @@ import de.rogallab.mobile.domain.utilities.logVerbose
 import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.errors.ErrorUiState
 import de.rogallab.mobile.ui.navigation.NavEvent
-import de.rogallab.mobile.ui.navigation.NavUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 open class BaseViewModel(
-   application: Application,
    private val _tag: String
 ) : ViewModel() {
 
@@ -72,31 +70,24 @@ open class BaseViewModel(
       }
    }
 
-
    // Navigation State = ViewModel (one time) UI event
-   private val _navUiStateFlow: MutableStateFlow<NavUiState> = MutableStateFlow(NavUiState())
-   val navUiStateFlow: StateFlow<NavUiState> = _navUiStateFlow.asStateFlow()
-
-   // prevent multiple navigation events
-   private var navEvent: NavEvent? = null
+   private val _navEventStateFlow: MutableStateFlow<NavEvent?> = MutableStateFlow(null)
+   val navEventStateFlow: StateFlow<NavEvent?> = _navEventStateFlow.asStateFlow()
 
    fun navigate(event: NavEvent) {
       logVerbose(_tag, "navigateTo() event:${event.toString()}")
-      if (event == navEvent) return
-      navEvent = event
-      _navUiStateFlow.update { it: NavUiState ->
-         it.copy(event = event)
+      if (event == _navEventStateFlow.value) return
+      _navEventStateFlow.update { it: NavEvent? ->
+         return@update event
       }
    }
    fun onNavEventHandled() {
       logVerbose(_tag, "onNavEventHandled() event: null")
       viewModelScope.launch {
          delay(100) // Delay to ensure navigation has been processed
-         _navUiStateFlow.update { it: NavUiState ->
-            it.copy(event = null)
+         _navEventStateFlow.update { it: NavEvent? ->
+            return@update null
          }
-         navEvent = null
       }
    }
-
 }

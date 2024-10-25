@@ -1,4 +1,5 @@
 package de.rogallab.mobile.ui.navigation
+
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -29,23 +30,24 @@ fun AppNavHost(
    peopleViewModel: PeopleViewModel = viewModel()
 ) {
    val tag = "<-AppNavHost"
-   val duration = 8000  // in milliseconds
+   val duration = 1000  // in milliseconds
 
+   // N A V I G A T I O N    H O S T -------------------------------------------
    NavHost(
       navController = navController,
       startDestination = NavScreen.PeopleList.route,
       enterTransition = { enterTransition(duration) },
-      exitTransition  = { exitTransition(duration)  },
+      exitTransition = { exitTransition(duration) },
       popEnterTransition = { popEnterTransition(duration) },
       popExitTransition = { popExitTransition(duration) }
    ) {
-      composable( route = NavScreen.PeopleList.route ) {
+      composable(route = NavScreen.PeopleList.route) {
          PeopleListScreen(
             viewModel = peopleViewModel
          )
       }
 
-      composable( route = NavScreen.PersonInput.route ) {
+      composable(route = NavScreen.PersonInput.route) {
          PersonScreen(
             viewModel = peopleViewModel,
             isInputScreen = true
@@ -54,7 +56,7 @@ fun AppNavHost(
 
       composable(
          route = NavScreen.PersonDetail.route + "/{personId}",
-         arguments = listOf(navArgument("personId") { type = NavType.StringType}),
+         arguments = listOf(navArgument("personId") { type = NavType.StringType }),
       ) { backStackEntry ->
          val id = backStackEntry.arguments?.getString("personId")
          PersonScreen(
@@ -65,25 +67,26 @@ fun AppNavHost(
       }
    }
 
+   // O N E   T I M E   E V E N T S   N A V I G A T I O N ---------------------
    // Observing the navigation state and handle navigation
-   val navUiState: NavUiState by peopleViewModel.navUiStateFlow.collectAsStateWithLifecycle()
-   navUiState.event?.let { navEvent: NavEvent ->
-      logInfo(tag, "navEvent: $navEvent")
+   val navEvent by peopleViewModel.navEventStateFlow.collectAsStateWithLifecycle()
+   logInfo(tag, "navEvent: $navEvent")
 
-      when(navEvent) {
+   navEvent?.let { it: NavEvent ->
+      when (it) {
 
          is NavEvent.NavigateForward -> {
             // Each navigate() pushes the given destination
             // to the top of the stack.
-            navController.navigate(navEvent.route)
+            navController.navigate(it.route)
 
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
 
          is NavEvent.NavigateReverse -> {
-            navController.navigate(navEvent.route) {
-               popUpTo(navEvent.route) {  // clears the back stack up to the given route
+            navController.navigate(it.route) {
+               popUpTo(it.route) {  // clears the back stack up to the given route
                   inclusive = true        // ensures that any previous instances of
                }                          // that route are removed
             }
@@ -98,11 +101,11 @@ fun AppNavHost(
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
-      }
-   }
-
+      } // end of when (it) {
+   } // end of navEvent?.let { it: NavEvent ->
 }
 
+// A N I M A T I O N S --------------------------------------------------------
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(
    duration: Int
 ) = fadeIn(
@@ -120,7 +123,6 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransition(
    animationSpec = tween(duration),
    towards = AnimatedContentTransitionScope.SlideDirection.Right
 )
-
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnterTransition(
    duration: Int

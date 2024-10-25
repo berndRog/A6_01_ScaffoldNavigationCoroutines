@@ -3,7 +3,7 @@ package de.rogallab.mobile.ui.people
 import android.app.Application
 import android.util.Patterns
 import androidx.lifecycle.viewModelScope
-import de.rogallab.mobile.data.PeopleRepository
+import de.rogallab.mobile.data.repositories.PeopleRepository
 import de.rogallab.mobile.data.local.DataStore
 import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class PeopleViewModel(
    application: Application
-) : BaseViewModel(application, TAG) {
+) : BaseViewModel(TAG) {
 
    // we must fix this by using a dependency injection framework
    private val _context = application.applicationContext
@@ -34,27 +34,9 @@ class PeopleViewModel(
 
    private var removedPerson: Person? = null
 
-   init {
-      logDebug(TAG, "init")
-
-      when(val resultData = _repository.readDataStore()) {
-         is ResultData.Success -> {
-            logDebug(TAG, "ReadDataStore() with success")
-         }
-         is ResultData.Error -> {
-            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
-         }
-      }
-      viewModelScope.launch {
-         delay(100)
-         fetch()
-      }
-   }
-
    // ===============================
    // S T A T E   C H A N G E S
    // ===============================
-
    // Data Binding PeopleListScreen <=> PersonViewModel
    private val _peopleUiStateFlow = MutableStateFlow(PeopleUiState())
    val peopleUiStateFlow = _peopleUiStateFlow.asStateFlow()
@@ -143,8 +125,7 @@ class PeopleViewModel(
    private fun create() {
       logDebug(TAG, "createPerson: ${_personUiStateFlow.value.person.id.as8()}")
       when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
-         is ResultData.Success ->
-            fetch()
+         is ResultData.Success -> fetch()
          is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
       }
@@ -152,15 +133,14 @@ class PeopleViewModel(
    private fun update() {
       logDebug(TAG, "updatePerson: ${_personUiStateFlow.value.person.id.as8()}")
       when(val resultData = _repository.update(_personUiStateFlow.value.person)) {
-         is ResultData.Success ->
-            fetch()
+         is ResultData.Success -> fetch()
          is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
       }
    }
    private fun remove(person: Person) {
       logDebug(TAG, "removePerson: ${person.id.as8()}")
-      when(val resultData = _repository.remove(person.id)) {
+      when(val resultData = _repository.remove(person)) {
          is ResultData.Success -> {
             removedPerson = person
             fetch()
