@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.logDebug
@@ -54,22 +55,26 @@ import de.rogallab.mobile.ui.errors.ErrorUiState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
+import de.rogallab.mobile.ui.people.PeopleIntent
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.PersonIntent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeopleListScreen(
-   viewModel: PeopleViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+   viewModel: PeopleViewModel = viewModel(),
 ) {
    val tag = "<-PeopleListScreen"
 
    // Observe the peopleUiState of the viewmodel
    val peopleUiState by viewModel.peopleUiStateFlow.collectAsStateWithLifecycle()
 
-   val activity = LocalContext.current as Activity
+   LaunchedEffect(Unit) {
+      viewModel.onProcessPeopleIntent(PeopleIntent.FetchPeople)
+   }
 
    // Back navigation
+   val activity = LocalContext.current as Activity
    BackHandler(
       enabled = true,
       onBack = {  activity.finish() }
@@ -90,7 +95,7 @@ fun PeopleListScreen(
          .background(color = MaterialTheme.colorScheme.surface),
       topBar = {
          TopAppBar(
-            title = { Text(text = stringResource(R.string.people_list)) },
+            title = { Text(text = stringResource(R.string.peopleList)) },
             navigationIcon = {
                IconButton(
                   onClick = {
@@ -110,9 +115,9 @@ fun PeopleListScreen(
             containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
                // FAB clicked -> InputScreen initialized
-               viewModel.onProcessIntent(PersonIntent.Clear)
+               viewModel.onProcessPersonIntent(PersonIntent.Clear)
                logInfo(tag, "Forward Navigation -> PersonInput")
-               viewModel.navigate(NavEvent.NavigateForward(NavScreen.PersonInput.route))
+               viewModel.onNavigate(NavEvent.NavigateForward(NavScreen.PersonInput.route))
             }
          ) {
             Icon(Icons.Default.Add, "Add a contact")
@@ -134,8 +139,6 @@ fun PeopleListScreen(
             items = peopleUiState.people.sortedBy { it.firstName },
             key = { it: Person -> it.id }
          ) { person ->
-
-
             var hasNavigated by remember { mutableStateOf(false) }
 
             val swipeToDismissBoxState: SwipeToDismissBoxState =
@@ -144,22 +147,20 @@ fun PeopleListScreen(
                   confirmValueChange = { swipe: SwipeToDismissBoxValue ->
                      if (swipe == SwipeToDismissBoxValue.StartToEnd && !hasNavigated) {
                         logDebug(tag, "navigate to PersonDetail")
-                        //viewModel.viewModelScope.launch {
-                           viewModel.navigate(
-                              NavEvent.NavigateForward(NavScreen.PersonDetail.route + "/${person.id}"))
-                           hasNavigated = true
-                        //}
+                        viewModel.onNavigate(NavEvent.NavigateForward(
+                           NavScreen.PersonDetail.route + "/${person.id}"))
+                        hasNavigated = true
                         return@rememberSwipeToDismissBoxState true
                      } else if (swipe == SwipeToDismissBoxValue.EndToStart) {
-                        viewModel.onProcessIntent(PersonIntent.Remove(person))
+                        viewModel.onProcessPersonIntent(PersonIntent.Remove(person))
                         // undo remove?
                         viewModel.onErrorEvent(
-                           params = ErrorParams(
+                           ErrorParams(
                               message = undoDeletePerson,
                               actionLabel = undoAnswer,
                               duration = SnackbarDuration.Short,
                               withDismissAction = false,
-                              onDismissAction = { viewModel.onProcessIntent(PersonIntent.UndoRemove) },
+                              onDismissAction = { viewModel.onProcessPersonIntent(PersonIntent.UndoRemove) },
                               navEvent = NavEvent.NavigateForward(route = NavScreen.PeopleList.route)
                            )
                         )
@@ -191,17 +192,15 @@ fun PeopleListScreen(
       }
    }
 
-   val errorState: ErrorUiState by viewModel.errorUiStateFlow.collectAsStateWithLifecycle()
+   val errorState: ErrorUiState
+      by viewModel.errorUiStateFlow.collectAsStateWithLifecycle()
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
          logDebug(tag, "ErrorUiState: ${errorState.params}")
-
          // show the error with a snackbar
-         showError(snackbarHostState, params, viewModel::navigate )
-
+         showError(snackbarHostState, params, viewModel::onNavigate )
          // reset the errorState, params are copied to showError
          viewModel.onErrorEventHandled()
-
       }
    }
 }

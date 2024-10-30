@@ -24,7 +24,9 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.utilities.logDebug
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -51,6 +53,8 @@ fun InputName(
    // local error state
    var isError by rememberSaveable { mutableStateOf(false) }
    var errorText by rememberSaveable { mutableStateOf("") }
+
+
 
    // Reusable Validation Functions: Validate the input when it changes
    val validate: (String) -> Unit = { input ->

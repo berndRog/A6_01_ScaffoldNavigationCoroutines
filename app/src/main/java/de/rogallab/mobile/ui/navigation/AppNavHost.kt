@@ -9,7 +9,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -17,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import de.rogallab.mobile.AppApplication
 import de.rogallab.mobile.domain.utilities.logInfo
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.composables.PeopleListScreen
@@ -27,7 +27,7 @@ fun AppNavHost(
    // create a NavHostController with a factory function
    navController: NavHostController = rememberNavController(),
    // Injecting the ViewModel by koin()
-   peopleViewModel: PeopleViewModel = viewModel()
+   peopleViewModel: PeopleViewModel
 ) {
    val tag = "<-AppNavHost"
    val duration = 1000  // in milliseconds
@@ -43,14 +43,16 @@ fun AppNavHost(
    ) {
       composable(route = NavScreen.PeopleList.route) {
          PeopleListScreen(
-            viewModel = peopleViewModel
+            viewModel = peopleViewModel,
          )
       }
 
       composable(route = NavScreen.PersonInput.route) {
          PersonScreen(
             viewModel = peopleViewModel,
-            isInputScreen = true
+            validator = AppApplication.personValidator,
+            isInputScreen = true,
+            id = null
          )
       }
 
@@ -61,6 +63,7 @@ fun AppNavHost(
          val id = backStackEntry.arguments?.getString("personId")
          PersonScreen(
             viewModel = peopleViewModel,
+            validator = AppApplication.personValidator,
             isInputScreen = false,
             id = id
          )

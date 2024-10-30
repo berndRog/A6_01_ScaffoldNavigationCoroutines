@@ -23,8 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
-// How to Implement Swipe to Delete with Material3 (veraltet)
-// https://www.youtube.com/watch?v=IlI6GgC_j78
 // Android Jetpack Compose – Swipe-to-Dismiss mit Material 3
 // https://www.geeksforgeeks.org/android-jetpack-compose-swipe-to-dismiss-with-material-3/
 

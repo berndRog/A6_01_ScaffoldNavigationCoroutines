@@ -28,7 +28,7 @@ class AppNavHostTest : KoinTest {
 
       // Perform navigation action
       composeTestRule.runOnIdle {
-         viewModel.navigate(NavEvent.NavigateForward(NavScreen.PeopleList.route))
+         viewModel.onNavigate(NavEvent.NavigateForward(NavScreen.PeopleList.route))
       }
 
       // Verify the current route

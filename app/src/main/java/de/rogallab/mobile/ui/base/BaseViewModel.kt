@@ -1,6 +1,5 @@
 package de.rogallab.mobile.ui.base
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.rogallab.mobile.domain.utilities.logDebug
@@ -74,10 +73,10 @@ open class BaseViewModel(
    private val _navEventStateFlow: MutableStateFlow<NavEvent?> = MutableStateFlow(null)
    val navEventStateFlow: StateFlow<NavEvent?> = _navEventStateFlow.asStateFlow()
 
-   fun navigate(event: NavEvent) {
+   fun onNavigate(event: NavEvent) {
       logVerbose(_tag, "navigateTo() event:${event.toString()}")
       if (event == _navEventStateFlow.value) return
-      _navEventStateFlow.update { it: NavEvent? ->
+      _navEventStateFlow.update {
          return@update event
       }
    }
@@ -85,7 +84,7 @@ open class BaseViewModel(
       logVerbose(_tag, "onNavEventHandled() event: null")
       viewModelScope.launch {
          delay(100) // Delay to ensure navigation has been processed
-         _navEventStateFlow.update { it: NavEvent? ->
+         _navEventStateFlow.update {
             return@update null
          }
       }

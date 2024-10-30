@@ -51,15 +51,18 @@ import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.PersonInputValidator
 import de.rogallab.mobile.ui.people.PersonIntent
 import de.rogallab.mobile.ui.people.PersonUiState
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonScreen(
    viewModel: PeopleViewModel,
-   isInputScreen: Boolean,
-   id: String? = null
+   validator: PersonInputValidator,
+   isInputScreen: Boolean,                      // parameter
+   id: String? = null                           // parameter
 ) {
    val isInputMode: Boolean by rememberSaveable { mutableStateOf(isInputScreen) }
 
@@ -68,8 +71,8 @@ fun PersonScreen(
       by viewModel.personUiStateFlow.collectAsStateWithLifecycle()
 
    val screenTitle =
-      if (isInputMode) stringResource(R.string.person_input)
-      else stringResource(R.string.person_detail)
+      if (isInputMode) stringResource(R.string.personInput)
+      else stringResource(R.string.personDetail)
    val tag =
       if (isInputMode) "<-PersonInputScreen"
       else "<-PersonDetailScreen"
@@ -77,7 +80,7 @@ fun PersonScreen(
    if (!isInputMode) {
       id?.let { it: String ->
          LaunchedEffect(Unit) {
-            viewModel.onProcessIntent(PersonIntent.FetchById(it))
+            viewModel.onProcessPersonIntent(PersonIntent.FetchById(it))
          }
       } ?: run {
          viewModel.onErrorEvent(
@@ -90,10 +93,8 @@ fun PersonScreen(
    }
 
    BackHandler{
-      logInfo(tag, "BackHandler -> navigate to Peoplelist")
-      viewModel.navigate(NavEvent.NavigateBack(NavScreen.PeopleList.route))
+      viewModel.onNavigate(NavEvent.NavigateBack(NavScreen.PeopleList.route))
    }
-
 
    val windowInsets = WindowInsets.systemBars
       .add(WindowInsets.captionBar)
@@ -113,8 +114,9 @@ fun PersonScreen(
             navigationIcon = {
                IconButton(onClick = {
                   logDebug(tag, "Reverse navigation -> PeopleList")
-                  viewModel.validate(isInputMode)
-                  viewModel.navigate(NavEvent.NavigateReverse(NavScreen.PeopleList.route))
+                  // viewModel.validate(isInputMode)
+                  if(viewModel.validate(isInputMode) )
+                     viewModel.onNavigate(NavEvent.NavigateReverse(NavScreen.PeopleList.route))
                }) {
                   Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                      contentDescription = stringResource(R.string.back))
@@ -141,28 +143,28 @@ fun PersonScreen(
          InputName(
             name = personUiState.person.firstName,          // State ↓
             onNameChange = { firstName: String ->           // Event ↑
-               viewModel.onProcessIntent(PersonIntent.FirstNameChange(firstName)) },
-            label = stringResource(R.string.firstname),            // State ↓
-            validateName = viewModel::validateFirstName,    // Event ↑ no state change
+               viewModel.onProcessPersonIntent(PersonIntent.FirstNameChange(firstName)) },
+            label = stringResource(R.string.firstName),            // State ↓
+            validateName = validator::validateFirstName     // Event ↑ no state change
          )
          InputName(
             name = personUiState.person.lastName,           // State ↓
             onNameChange = { lastName: String ->            // Event ↑
-               viewModel.onProcessIntent(PersonIntent.LastNameChange(lastName)) },
-            label = stringResource(R.string.lastname),             // State ↓
-            validateName = viewModel::validateLastName,     // Event ↑ no state change
+               viewModel.onProcessPersonIntent(PersonIntent.LastNameChange(lastName)) },
+            label = stringResource(R.string.lastName),             // State ↓
+            validateName = validator::validateLastName,     // Event ↑ no state change
          )
          InputEmail(
             email = personUiState.person.email,             // State ↓
             onEmailChange = { email:String ->               // Event ↑
-               viewModel.onProcessIntent(PersonIntent.EmailChange(email)) },
-            validateEmail = viewModel::validateEmail        // Event ↑ no state change
+               viewModel.onProcessPersonIntent(PersonIntent.EmailChange(email)) },
+            validateEmail = validator::validateEmail        // Event ↑ no state change
          )
          InputPhone(
             phone = personUiState.person.phone,             // State ↓
             onPhoneChange = { phone:String ->               // Event ↑
-               viewModel.onProcessIntent(PersonIntent.PhoneChange(phone)) },
-            validatePhone = viewModel::validatePhone        // Event ↑ no state change
+               viewModel.onProcessPersonIntent(PersonIntent.PhoneChange(phone)) },
+            validatePhone = validator::validatePhone        // Event ↑ no state change
          )
 
       } // Column
@@ -173,9 +175,10 @@ fun PersonScreen(
       errorState.params?.let { params: ErrorParams ->
          logDebug(tag, "ErrorUiState: ${errorState.params}")
          // show the error with a snackbar
-         showError(snackbarHostState, params, viewModel::navigate )
+         showError(snackbarHostState, params, viewModel::onNavigate )
+
          // reset the errorState, params are copied to showError
-         viewModel.onErrorEventHandled()
+         viewModel::onErrorEventHandled
       }
    }
 }

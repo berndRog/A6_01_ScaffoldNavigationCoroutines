@@ -1,23 +1,20 @@
 package de.rogallab.mobile.ui.people
 
 import android.app.Application
-import android.util.Patterns
-import androidx.lifecycle.viewModelScope
+import de.rogallab.mobile.AppApplication
+import de.rogallab.mobile.data.local.datastore.DataStore
 import de.rogallab.mobile.data.repositories.PeopleRepository
-import de.rogallab.mobile.data.local.DataStore
 import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
-import de.rogallab.mobile.ui.ResourceProvider
+import de.rogallab.mobile.domain.utilities.logError
+import de.rogallab.mobile.domain.utilities.logInfo
 import de.rogallab.mobile.ui.base.BaseViewModel
 import de.rogallab.mobile.ui.errors.ErrorParams
-import de.rogallab.mobile.ui.errors.ErrorResources
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class PeopleViewModel(
    application: Application
@@ -28,10 +25,8 @@ class PeopleViewModel(
    private val _dataStore = DataStore(_context)
    private val _repository = PeopleRepository(_dataStore)
 
-   // get error resources from the context
-   private val _resourceProvider = ResourceProvider(_context)
-   private val _errorResources = ErrorResources(_resourceProvider)
-
+   // get error messages from the string resources
+   private val _validator = AppApplication.personValidator
    private var removedPerson: Person? = null
 
    // ===============================
@@ -41,11 +36,11 @@ class PeopleViewModel(
    private val _peopleUiStateFlow = MutableStateFlow(PeopleUiState())
    val peopleUiStateFlow = _peopleUiStateFlow.asStateFlow()
 
-
    // transform intent into an action
-   fun onProcessIntent(intent: PeopleIntent) {
+   fun onProcessPeopleIntent(intent: PeopleIntent) {
+      logInfo(TAG, "onProcessIntent: $intent")
       when (intent) {
-         is PeopleIntent.Fetch -> fetch()
+         is PeopleIntent.FetchPeople -> fetch()
       }
    }
 
@@ -70,7 +65,8 @@ class PeopleViewModel(
    val personUiStateFlow = _personUiStateFlow.asStateFlow()
 
    // transform intent into an action
-   fun onProcessIntent(intent: PersonIntent) {
+   fun onProcessPersonIntent(intent: PersonIntent) {
+      logInfo(TAG, "onProcessIntent: $intent")
       when (intent) {
          is PersonIntent.FirstNameChange -> onFirstNameChange(intent.firstName)
          is PersonIntent.LastNameChange -> onLastNameChange(intent.lastName)
@@ -114,7 +110,7 @@ class PeopleViewModel(
 
    private fun fetchById(personId: String) {
       logDebug(TAG, "fetchPersonById: $personId")
-      when (val resultData = _repository.findById(personId)) {
+      when (val resultData = _repository.getById(personId)) {
          is ResultData.Success -> _personUiStateFlow.update { it: PersonUiState ->
             it.copy(person = resultData.data ?: Person())  // new UiState
          }
@@ -166,87 +162,31 @@ class PeopleViewModel(
       _personUiStateFlow.update { it.copy(person = Person()) }
    }
 
-   // ===============================
-   // N O   S T A T E   C H A N G E S
-   // ===============================
-   // Validation is unrelated to state management and simply returns a result
-   // We can call the validation function directly in the Composables
-   fun validateFirstName(firstName: String): Pair<Boolean, String> =
-      if (firstName.isEmpty() || firstName.length < _errorResources.charMin)
-         Pair(true, _errorResources.firstnameTooShort)
-      else if (firstName.length > _errorResources.charMax )
-         Pair(true, _errorResources.firstnameTooLong)
-      else
-         Pair(false, "")
-
-   fun validateLastName(lastName: String): Pair<Boolean, String> =
-      if (lastName.isEmpty() || lastName.length < _errorResources.charMin)
-         Pair(true, _errorResources.lastnameTooShort)
-      else if (lastName.length > _errorResources.charMax )
-         Pair(true, _errorResources.lastnameTooLong)
-      else
-         Pair(false, "")
-
-   fun validateEmail(email: String?): Pair<Boolean, String> {
-      email?.let {
-         when (android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()) {
-            true -> return Pair(false, "") // email ok
-            false -> return Pair(true, _errorResources.emailInValid)
-         }
-      } ?: return Pair(false, "")
-   }
-
-   fun validatePhone(phone: String?): Pair<Boolean, String> {
-      phone?.let {
-         when (Patterns.PHONE.matcher(it).matches()) {
-            true -> return Pair(false,"")   // phone ok
-            false -> return Pair(true, _errorResources.phoneInValid)
-         }
-      } ?: return Pair(false, "")
-   }
-
-
-   fun validate(
-      isInput: Boolean
-   ) {
-      // input is ok        -> add and navigate up
-      // detail is ok       -> update and navigate up
-      // is the is an error -> show error and stay on screen
-
-      val charMin = _errorResources.charMin
-      val charMax = _errorResources.charMax
-
+   // =========================================
+   // V A L I D A T E   I N P U T   F I E L D S
+   // =========================================
+   // validate all input fields after user finished input into the form
+   fun validate(isInput: Boolean): Boolean {
       val person = _personUiStateFlow.value.person
 
-      // firstName or lastName too short or to long
-      if (person.firstName.isEmpty() || person.firstName.length < charMin) {
-         onErrorEvent(ErrorParams(message = _errorResources.firstnameTooShort, navEvent = null))
-      }
-      else if (person.firstName.length > charMax) {
-         onErrorEvent(ErrorParams(message = _errorResources.firstnameTooLong, navEvent = null))
-      }
-      else if (person.lastName.isEmpty() || person.lastName.length < charMin) {
-         onErrorEvent(ErrorParams(message = _errorResources.lastnameTooShort, navEvent = null))
-      }
-      else if (person.lastName.length > charMax) {
-         onErrorEvent(ErrorParams(message = _errorResources.lastnameTooLong, navEvent = null))
-      }
-
-      // email not valid
-      else if (person.email != null &&
-         !Patterns.EMAIL_ADDRESS.matcher(person.email).matches()) {
-         onErrorEvent(ErrorParams(message = _errorResources.emailInValid, navEvent = null))
-      }
-
-      // phone not valid
-      else if (person.phone != null &&
-         !Patterns.PHONE.matcher(person.phone).matches()) {
-         onErrorEvent(ErrorParams(message = _errorResources.phoneInValid, navEvent = null))
-      }
-      else {
+      if(validateAndLogError(_validator.validateFirstName(person.firstName)) &&
+         validateAndLogError(_validator.validateLastName(person.lastName)) &&
+         validateAndLogError(_validator.validateEmail(person.email)) &&
+         validateAndLogError(_validator.validatePhone(person.phone))
+      ) {
+         // write data to repository
          if (isInput) this.create()
          else         this.update()
+         return true
+      } else {
+         return false
       }
+   }
+
+   private fun validateAndLogError(validationResult: Pair<Boolean, String>): Boolean {
+      val (success, message) = validationResult
+      if (!success) logError(TAG, message)
+      return success
    }
 
    companion object {
