@@ -2,7 +2,6 @@ package de.rogallab.mobile.domain.entities
 import java.util.UUID
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class Person(
    val firstName: String = "",

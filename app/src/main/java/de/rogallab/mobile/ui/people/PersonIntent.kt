@@ -13,5 +13,4 @@ sealed class PersonIntent {
    data object Create : PersonIntent()
    data object Update : PersonIntent()
    data class  Remove(val person: Person) : PersonIntent()
-   data object UndoRemove : PersonIntent()
 }

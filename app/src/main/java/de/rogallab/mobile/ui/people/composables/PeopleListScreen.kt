@@ -23,7 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
@@ -49,9 +48,9 @@ import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logInfo
-import de.rogallab.mobile.ui.composables.SetSwipeBackgroud
+import de.rogallab.mobile.domain.utilities.logVerbose
 import de.rogallab.mobile.ui.errors.ErrorParams
-import de.rogallab.mobile.ui.errors.ErrorUiState
+import de.rogallab.mobile.ui.errors.ErrorState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
@@ -69,19 +68,18 @@ fun PeopleListScreen(
    // Observe the peopleUiState of the viewmodel
    val peopleUiState by viewModel.peopleUiStateFlow.collectAsStateWithLifecycle()
 
+   // read all people from repository, when the screen is created
    LaunchedEffect(Unit) {
-      viewModel.onProcessPeopleIntent(PeopleIntent.FetchPeople)
+      logVerbose(tag, "fetchPeople()")
+      viewModel.onProcessPeopleIntent(PeopleIntent.Fetch)
    }
-
+   
    // Back navigation
    val activity = LocalContext.current as Activity
    BackHandler(
       enabled = true,
       onBack = {  activity.finish() }
    )
-
-   val undoDeletePerson = stringResource(R.string.undoDeletePerson)
-   val undoAnswer = stringResource(R.string.undoAnswer)
 
    val snackbarHostState = remember { SnackbarHostState() }
 
@@ -139,45 +137,18 @@ fun PeopleListScreen(
             items = peopleUiState.people.sortedBy { it.firstName },
             key = { it: Person -> it.id }
          ) { person ->
-            var hasNavigated by remember { mutableStateOf(false) }
 
-            val swipeToDismissBoxState: SwipeToDismissBoxState =
-               rememberSwipeToDismissBoxState(
-                  initialValue = SwipeToDismissBoxValue.Settled,
-                  confirmValueChange = { swipe: SwipeToDismissBoxValue ->
-                     if (swipe == SwipeToDismissBoxValue.StartToEnd && !hasNavigated) {
-                        logDebug(tag, "navigate to PersonDetail")
-                        viewModel.onNavigate(NavEvent.NavigateForward(
-                           NavScreen.PersonDetail.route + "/${person.id}"))
-                        hasNavigated = true
-                        return@rememberSwipeToDismissBoxState true
-                     } else if (swipe == SwipeToDismissBoxValue.EndToStart) {
-                        viewModel.onProcessPersonIntent(PersonIntent.Remove(person))
-                        // undo remove?
-                        viewModel.onErrorEvent(
-                           ErrorParams(
-                              message = undoDeletePerson,
-                              actionLabel = undoAnswer,
-                              duration = SnackbarDuration.Short,
-                              withDismissAction = false,
-                              onDismissAction = { viewModel.onProcessPersonIntent(PersonIntent.UndoRemove) },
-                              navEvent = NavEvent.NavigateForward(route = NavScreen.PeopleList.route)
-                           )
-                        )
-                        return@rememberSwipeToDismissBoxState true
-                     } else return@rememberSwipeToDismissBoxState false
-                  },
-                  positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold,
-               )
-
-            SwipeToDismissBox(
-               state = swipeToDismissBoxState,
-               backgroundContent = { SetSwipeBackgroud(swipeToDismissBoxState) },
-               modifier = Modifier.padding(vertical = 4.dp),
-               // enable dismiss from start to end (left to right)
-               enableDismissFromStartToEnd = true,
-               // enable dismiss from end to start (right to left)
-               enableDismissFromEndToStart = true
+            SwipePersonListItem(
+               // item
+               person = person,
+               // navigate to DetailScreen
+               onNavigate = viewModel::onNavigate,
+               // remove item
+               onProcessIntent = { viewModel.onProcessPersonIntent(PersonIntent.Remove(person)) },
+               // undo -> show snackbar
+               onErrorEvent = viewModel::onErrorEvent,
+               // undo -> action
+               onUndoAction = viewModel::undoRemove
             ) {
                // content
                PersonCard(
@@ -185,15 +156,17 @@ fun PeopleListScreen(
                   lastName = person.lastName,
                   email = person.email,
                   phone = person.phone,
-                  imagePath = person.imagePath
+                  imagePath = person.imagePath,
                )
             }
-         }
+        }
       }
    }
 
-   val errorState: ErrorUiState
-      by viewModel.errorUiStateFlow.collectAsStateWithLifecycle()
+   val errorState: ErrorState
+      by viewModel.errorStateFlow.collectAsStateWithLifecycle()
+   logVerbose(tag, "errorState: ${errorState.params}")
+
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
          logDebug(tag, "ErrorUiState: ${errorState.params}")

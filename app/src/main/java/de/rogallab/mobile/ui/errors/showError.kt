@@ -5,24 +5,25 @@ import androidx.compose.material3.SnackbarResult
 import de.rogallab.mobile.ui.navigation.NavEvent
 
 suspend fun showError(
-   snackbarHostState: SnackbarHostState,                   // State ↓
-   params: ErrorParams,                                    // State ↓
-   navigateTo: (NavEvent) -> Unit,                         // Event ↑                                // State ↓
+   snackbarHostState: SnackbarHostState,  // State ↓
+   params: ErrorParams,                   // State ↓
+   onNavigate: (NavEvent) -> Unit,        // Event ↑
 ) {
-
+   // Show Snackbar
    snackbarHostState.showSnackbar(
       message = params.throwable?.message ?: params.message,
       actionLabel = params.actionLabel,
-      withDismissAction = params.withDismissAction,
+      withDismissAction = params.withUndoAction,
       duration = params.duration
    ).also { snackbarResult: SnackbarResult ->
+   // Handle Snackbar action
       if (snackbarResult == SnackbarResult.ActionPerformed) {
-         params.onDismissAction()
+         params.onUndoAction()
       }
    }
 
-   // if navigation is true, navigate to route
+   // navigate to target
    params.navEvent?.let { event ->
-      navigateTo(event)
+      onNavigate(event)
    }
 }

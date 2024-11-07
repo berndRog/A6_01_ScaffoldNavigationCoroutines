@@ -2,7 +2,7 @@ package de.rogallab.mobile.data.local.datastore
 
 import android.content.Context
 import de.rogallab.mobile.data.IDataStore
-import de.rogallab.mobile.data.local.Seed
+import de.rogallab.mobile.data.local.SeedWithImages
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
@@ -76,16 +76,17 @@ class DataStore(
          val file = File(filePath)
          if (!file.exists() || file.readText().isBlank()) {
             // seed _people with some data
-            _people = Seed().people
-            logVerbose(TAG, "read: seedData people:${_people.size}")
+            val seed = SeedWithImages(_context, _context.resources)
+            _people.addAll(seed.people)
+            logVerbose(TAG, "create(): seedData ${_people.size} people")
             write()
             return
          }
          // read json from a file and convert to a list of people
          val jsonString = File(filePath).readText()
+         logVerbose(TAG, jsonString)
          _people = _json.decodeFromString(jsonString)
-         // logVerbose(TAG, jsonString)
-         logDebug(TAG, "decode JSON: ${_people.size} People")
+         logDebug(TAG, "read(): decode JSON ${_people.size} Ppeople")
       } catch (e: Exception) {
          logError(TAG, "Failed to read: ${e.message}")
          throw e
@@ -97,11 +98,11 @@ class DataStore(
       try {
          val filePath = getFilePath(FILE_NAME)
          val jsonString = _json.encodeToString(_people)
-         logDebug(TAG, "encode JSON: ${_people.size} People")
+         logDebug(TAG, "write(): encode JSON ${_people.size} people")
          // save to a file
          val file = File(filePath)
          file.writeText(jsonString)
-         // logVerbose(TAG, jsonString)
+         logVerbose(TAG, jsonString)
       } catch (e: Exception) {
          logError(TAG, "Failed to write: ${e.message}")
          throw e

@@ -1,32 +1,29 @@
 package de.rogallab.mobile.ui.people
 
-import android.app.Application
-import de.rogallab.mobile.AppApplication
-import de.rogallab.mobile.data.local.datastore.DataStore
-import de.rogallab.mobile.data.repositories.PeopleRepository
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import de.rogallab.mobile.domain.IPeopleRepository
 import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logInfo
+import de.rogallab.mobile.ui.IErrorHandler
+import de.rogallab.mobile.ui.INavigationHandler
 import de.rogallab.mobile.ui.base.BaseViewModel
+import de.rogallab.mobile.ui.errors.ErrorHandler
 import de.rogallab.mobile.ui.errors.ErrorParams
+import de.rogallab.mobile.ui.navigation.NavigationHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class PeopleViewModel(
-   application: Application
+   private val _repository: IPeopleRepository,
+   private val _validator: PersonValidator
 ) : BaseViewModel(TAG) {
 
-   // we must fix this by using a dependency injection framework
-   private val _context = application.applicationContext
-   private val _dataStore = DataStore(_context)
-   private val _repository = PeopleRepository(_dataStore)
-
-   // get error messages from the string resources
-   private val _validator = AppApplication.personValidator
    private var removedPerson: Person? = null
 
    // ===============================
@@ -40,7 +37,7 @@ class PeopleViewModel(
    fun onProcessPeopleIntent(intent: PeopleIntent) {
       logInfo(TAG, "onProcessIntent: $intent")
       when (intent) {
-         is PeopleIntent.FetchPeople -> fetch()
+         is PeopleIntent.Fetch -> fetch()
       }
    }
 
@@ -79,7 +76,6 @@ class PeopleViewModel(
          is PersonIntent.Create -> create()
          is PersonIntent.Update -> update()
          is PersonIntent.Remove -> remove(intent.person)
-         is PersonIntent.UndoRemove -> undoRemove()
       }
    }
 
@@ -144,7 +140,8 @@ class PeopleViewModel(
          is ResultData.Error ->
             onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))         }
    }
-   private fun undoRemove() {
+
+   fun undoRemove() {
       removedPerson?.let { person ->
          logDebug(TAG, "undoRemovePerson: ${person.id.as8()}")
          when(val resultData = _repository.create(person)) {
@@ -184,9 +181,12 @@ class PeopleViewModel(
    }
 
    private fun validateAndLogError(validationResult: Pair<Boolean, String>): Boolean {
-      val (success, message) = validationResult
-      if (!success) logError(TAG, message)
-      return success
+      val (error, message) = validationResult
+      if (error) {
+         onErrorEvent(ErrorParams(message = message, navEvent = null))
+         logError(TAG, message)
+      }
+      return true
    }
 
    companion object {

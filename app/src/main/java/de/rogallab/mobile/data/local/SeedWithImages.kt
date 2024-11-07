@@ -1,20 +1,20 @@
-package de.rogallab.mobile.data
+package de.rogallab.mobile.data.local
 
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.BitmapFactory
 import de.rogallab.mobile.R
+import de.rogallab.mobile.data.local.io.deleteFileOnStorage
+import de.rogallab.mobile.data.local.io.writeImageToStorage
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.logDebug
 import kotlin.random.Random
 
-class Seed(
+class SeedWithImages(
    private val context: Context,
    private val resources: Resources
 ) {
-
    var people: MutableList<Person> = mutableListOf<Person>()
-
    private val _imagesUri = mutableListOf<String>()
 
    init {
@@ -70,52 +70,18 @@ class Seed(
             }
          }
       }
-
       if (_imagesUri.size == 11) {
-         people[0] = people[0].copy(
-            localImagePath = _imagesUri[0],
-            imageUrl = _imagesUri[0]
-         )
-         people[1] = people[1].copy(
-            localImagePath = _imagesUri[6],
-            imageUrl = _imagesUri[6]
-         )
-         people[2] = people[2].copy(
-            localImagePath = _imagesUri[1],
-            imageUrl = _imagesUri[1]
-         )
-         people[3] = people[3].copy(
-            localImagePath = _imagesUri[7],
-            imageUrl = _imagesUri[7]
-         )
-         people[4] = people[4].copy(
-            localImagePath = _imagesUri[2],
-            imageUrl = _imagesUri[2]
-         )
-         people[5] = people[5].copy(
-            localImagePath = _imagesUri[8],
-            imageUrl = _imagesUri[8]
-         )
-         people[6] = people[6].copy(
-            localImagePath = _imagesUri[3],
-            imageUrl = _imagesUri[3]
-         )
-         people[7] = people[7].copy(
-            localImagePath = _imagesUri[9],
-            imageUrl = _imagesUri[9]
-         )
-         people[8] = people[8].copy(
-            localImagePath = _imagesUri[4],
-            imageUrl = _imagesUri[4]
-         )
-         people[9] = people[9].copy(
-            localImagePath = _imagesUri[10],
-            imageUrl = _imagesUri[10]
-         )
-         people[10] = people[10].copy(
-            localImagePath = _imagesUri[5],
-            imageUrl = _imagesUri[5]
-         )
+         people[0] = people[0].copy(imagePath = _imagesUri[0])
+         people[1] = people[1].copy(imagePath = _imagesUri[6])
+         people[2] = people[2].copy(imagePath = _imagesUri[1])
+         people[3] = people[3].copy(imagePath = _imagesUri[7])
+         people[4] = people[4].copy(imagePath = _imagesUri[2])
+         people[5] = people[5].copy(imagePath = _imagesUri[8])
+         people[6] = people[6].copy(imagePath = _imagesUri[3])
+         people[7] = people[7].copy(imagePath = _imagesUri[9])
+         people[8] = people[8].copy(imagePath = _imagesUri[4])
+         people[9] = people[9].copy(imagePath = _imagesUri[10])
+         people[10] = people[10].copy(imagePath = _imagesUri[5])
       }
    }
 
@@ -125,5 +91,4 @@ class Seed(
          deleteFileOnStorage(imageUrl)
       }
    }
-
 }

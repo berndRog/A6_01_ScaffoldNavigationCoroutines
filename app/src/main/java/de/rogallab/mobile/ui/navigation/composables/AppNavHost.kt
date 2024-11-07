@@ -1,4 +1,4 @@
-package de.rogallab.mobile.ui.navigation
+package de.rogallab.mobile.ui.navigation.composables
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
@@ -16,21 +16,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import de.rogallab.mobile.AppApplication
-import de.rogallab.mobile.domain.utilities.logInfo
+import de.rogallab.mobile.AppStart
+import de.rogallab.mobile.domain.utilities.logVerbose
+import de.rogallab.mobile.ui.navigation.NavEvent
+import de.rogallab.mobile.ui.navigation.NavScreen
+import de.rogallab.mobile.ui.navigation.NavState
 import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.PersonValidator
 import de.rogallab.mobile.ui.people.composables.PeopleListScreen
 import de.rogallab.mobile.ui.people.composables.PersonScreen
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun AppNavHost(
    // create a NavHostController with a factory function
    navController: NavHostController = rememberNavController(),
-   // Injecting the ViewModel by koin()
-   peopleViewModel: PeopleViewModel
+   peopleViewModel: PeopleViewModel = koinViewModel()
 ) {
    val tag = "<-AppNavHost"
-   val duration = 1000  // in milliseconds
+   val duration = 5000  // in milliseconds
 
    // N A V I G A T I O N    H O S T -------------------------------------------
    NavHost(
@@ -50,7 +55,7 @@ fun AppNavHost(
       composable(route = NavScreen.PersonInput.route) {
          PersonScreen(
             viewModel = peopleViewModel,
-            validator = AppApplication.personValidator,
+            validator = koinInject<PersonValidator>(),
             isInputScreen = true,
             id = null
          )
@@ -63,7 +68,7 @@ fun AppNavHost(
          val id = backStackEntry.arguments?.getString("personId")
          PersonScreen(
             viewModel = peopleViewModel,
-            validator = AppApplication.personValidator,
+            validator = koinInject<PersonValidator>(),
             isInputScreen = false,
             id = id
          )
@@ -72,35 +77,30 @@ fun AppNavHost(
 
    // O N E   T I M E   E V E N T S   N A V I G A T I O N ---------------------
    // Observing the navigation state and handle navigation
-   val navEvent by peopleViewModel.navEventStateFlow.collectAsStateWithLifecycle()
-   logInfo(tag, "navEvent: $navEvent")
+   val navState: NavState
+      by peopleViewModel.navStateFlow.collectAsStateWithLifecycle()
 
-   navEvent?.let { it: NavEvent ->
-      when (it) {
-
+   navState.navEvent?.let { navEvent ->
+      logVerbose(tag, "navEvent: $navEvent")
+      when (navEvent) {
          is NavEvent.NavigateForward -> {
             // Each navigate() pushes the given destination
             // to the top of the stack.
-            navController.navigate(it.route)
-
+            navController.navigate(navEvent.route)
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
-
          is NavEvent.NavigateReverse -> {
-            navController.navigate(it.route) {
-               popUpTo(it.route) {  // clears the back stack up to the given route
+            navController.navigate(navEvent.route) {
+               popUpTo(navEvent.route) {  // clears the back stack up to the given route
                   inclusive = true        // ensures that any previous instances of
                }                          // that route are removed
             }
-
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }
-
          is NavEvent.NavigateBack -> {
             navController.popBackStack()
-
             // onNavEventHandled() resets the navEvent to null
             peopleViewModel.onNavEventHandled()
          }

@@ -2,91 +2,45 @@ package de.rogallab.mobile.ui.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.rogallab.mobile.domain.utilities.logDebug
-import de.rogallab.mobile.domain.utilities.logVerbose
+import de.rogallab.mobile.ui.IErrorHandler
+import de.rogallab.mobile.ui.INavigationHandler
+import de.rogallab.mobile.ui.errors.ErrorHandler
 import de.rogallab.mobile.ui.errors.ErrorParams
-import de.rogallab.mobile.ui.errors.ErrorUiState
+import de.rogallab.mobile.ui.errors.ErrorState
 import de.rogallab.mobile.ui.navigation.NavEvent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
+import de.rogallab.mobile.ui.navigation.NavState
+import de.rogallab.mobile.ui.navigation.NavigationHandler
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
 
 open class BaseViewModel(
-   private val _tag: String
-) : ViewModel() {
+   private val _tag: String = "<-BaseViewModel"
+): ViewModel(),
+   IErrorHandler,
+   INavigationHandler {
 
-   // Error  State = ViewModel (one time) events
-   private val _errorUiStateFlow: MutableStateFlow<ErrorUiState> = MutableStateFlow(ErrorUiState())
-   val errorUiStateFlow: StateFlow<ErrorUiState> = _errorUiStateFlow.asStateFlow()
+   // D e l e g a t e   t o   E r r o r H a n d l e r
+   private val _errorHandler: IErrorHandler =
+      ErrorHandler(viewModelScope, _tag)
 
-   fun onErrorEvent(params: ErrorParams) {
-      logDebug(_tag, "onErrorEvent()")
-      _errorUiStateFlow.update { it: ErrorUiState ->
-         it.copy(params = params)
-      }
-   }
-   fun onErrorEventHandled() {
-      logDebug(_tag, "onErrorEventHandled()")
-      _errorUiStateFlow.update { it: ErrorUiState ->
-         it.copy(params = null)
-      }
-   }
+   override val errorStateFlow: StateFlow<ErrorState>
+      get() = _errorHandler.errorStateFlow
 
-   fun onFailure(throwable: Throwable, navEvent: NavEvent? = null) {
-      when (throwable) {
-         is CancellationException -> {
-            val error = throwable.localizedMessage ?: "Cancellation error"
-            _errorUiStateFlow.value = _errorUiStateFlow.value.copy(
-               params = ErrorParams(message = error, navEvent = navEvent)
-            )
-         }
-         /*
-         is RedirectResponseException -> {
-            val error = "Redirect error: ${throwable.response.status.description}"
-            onErrorEvent(ErrorParams(message = error, navEvent = navEvent))
-         }
-         is ClientRequestException -> {
-            val error = "Client error: ${throwable.response.status.description}"
-            onErrorEvent(ErrorParams(message = error, navEvent = navEvent))
-         }
-         is ServerResponseException -> {
-            val error = "Server error: ${throwable.response.status.description}"
-            onErrorEvent(ErrorParams(message = error, navEvent = navEvent))
-         }
-         is ConnectTimeoutException ->
-            onErrorEvent(ErrorParams(message = "Connect timed out", navEvent = navEvent))
-         is SocketTimeoutException ->
-            onErrorEvent(ErrorParams(message = "Socket timed out", navEvent = navEvent))
-         is UnknownHostException ->
-            onErrorEvent(ErrorParams(message = "No internet connection", navEvent = navEvent))
-         */
-         else ->
-            onErrorEvent(ErrorParams(throwable = throwable, navEvent = navEvent))
-      }
-   }
+   override fun onErrorEvent(params: ErrorParams) =
+      _errorHandler.onErrorEvent(params)
 
-   // Navigation State = ViewModel (one time) UI event
-   private val _navEventStateFlow: MutableStateFlow<NavEvent?> = MutableStateFlow(null)
-   val navEventStateFlow: StateFlow<NavEvent?> = _navEventStateFlow.asStateFlow()
+   override fun onErrorEventHandled() =
+      _errorHandler.onErrorEventHandled()
 
-   fun onNavigate(event: NavEvent) {
-      logVerbose(_tag, "navigateTo() event:${event.toString()}")
-      if (event == _navEventStateFlow.value) return
-      _navEventStateFlow.update {
-         return@update event
-      }
-   }
-   fun onNavEventHandled() {
-      logVerbose(_tag, "onNavEventHandled() event: null")
-      viewModelScope.launch {
-         delay(100) // Delay to ensure navigation has been processed
-         _navEventStateFlow.update {
-            return@update null
-         }
-      }
-   }
+   // D e l e g a t e  t o  E r r o r H a n d  l e r
+   private val _navHandler: INavigationHandler =
+      NavigationHandler(viewModelScope, _tag)
+
+   override val navStateFlow: StateFlow<NavState>
+      get() = _navHandler.navStateFlow
+
+   override fun onNavigate(navEvent: NavEvent) =
+      _navHandler.onNavigate(navEvent)
+
+   override fun onNavEventHandled() =
+      _navHandler.onNavEventHandled()
 }

@@ -12,9 +12,9 @@ data class ErrorParams(
    val actionLabel: String? = null,
    // duration of the snackbars visibility
    val duration: SnackbarDuration = SnackbarDuration.Short,
-   // dismiss action
-   val withDismissAction: Boolean = false,
-   val onDismissAction: () -> Unit = {}, // default action: do nothing
+   // undo action
+   val withUndoAction: Boolean = false,
+   val onUndoAction: () -> Unit = {}, // default action: do nothing
 
    // navigation to
    var navEvent: NavEvent?  = null,

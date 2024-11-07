@@ -4,6 +4,7 @@ package de.rogallab.mobile.ui.navigation
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import de.rogallab.mobile.ui.navigation.composables.AppNavHost
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import org.junit.Rule
 import org.junit.Test

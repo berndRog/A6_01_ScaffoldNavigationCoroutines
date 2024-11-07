@@ -41,41 +41,35 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rogallab.mobile.R
 import de.rogallab.mobile.domain.utilities.logDebug
-import de.rogallab.mobile.domain.utilities.logInfo
-import de.rogallab.mobile.ui.composables.InputEmail
-import de.rogallab.mobile.ui.composables.InputName
-import de.rogallab.mobile.ui.composables.InputPhone
 import de.rogallab.mobile.ui.errors.ErrorParams
-import de.rogallab.mobile.ui.errors.ErrorUiState
+import de.rogallab.mobile.ui.errors.ErrorState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleViewModel
-import de.rogallab.mobile.ui.people.PersonInputValidator
+import de.rogallab.mobile.ui.people.PersonValidator
 import de.rogallab.mobile.ui.people.PersonIntent
 import de.rogallab.mobile.ui.people.PersonUiState
-import kotlinx.coroutines.flow.StateFlow
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonScreen(
-   viewModel: PeopleViewModel,
-   validator: PersonInputValidator,
-   isInputScreen: Boolean,                      // parameter
-   id: String? = null                           // parameter
+   viewModel: PeopleViewModel = koinViewModel(),
+   validator: PersonValidator = koinInject(),
+   isInputScreen: Boolean = true,
+   id: String? = null
 ) {
+   // is screen used as InputScreen to create a new person
+   // or as DetailScreen to update a person
    val isInputMode: Boolean by rememberSaveable { mutableStateOf(isInputScreen) }
 
-   // Observe the state of the viewmodel
-   val personUiState: PersonUiState
-      by viewModel.personUiStateFlow.collectAsStateWithLifecycle()
+   val screenTitle = if (isInputMode) stringResource(R.string.personInput)
+   else stringResource(R.string.personDetail)
+   val tag = if (isInputMode) "<-PersonInputScreen"
+   else "<-PersonDetailScreen"
 
-   val screenTitle =
-      if (isInputMode) stringResource(R.string.personInput)
-      else stringResource(R.string.personDetail)
-   val tag =
-      if (isInputMode) "<-PersonInputScreen"
-      else "<-PersonDetailScreen"
    // DetailScreen
    if (!isInputMode) {
       id?.let { it: String ->
@@ -91,6 +85,10 @@ fun PersonScreen(
          )
       }
    }
+
+   // Observe the PersonUiState
+   val personUiState: PersonUiState
+      by viewModel.personUiStateFlow.collectAsStateWithLifecycle()
 
    BackHandler{
       viewModel.onNavigate(NavEvent.NavigateBack(NavScreen.PeopleList.route))
@@ -167,20 +165,22 @@ fun PersonScreen(
             validatePhone = validator::validatePhone        // Event ↑ no state change
          )
 
+         SelectAndShowImage(
+            imageUrl = personUiState.person.imagePath,     // State ↓viewModel.imagePath,                          // State ↓
+            onImageUrlChange = { Unit }                    // Event ↑
+         )
+
       } // Column
    } // Scaffold
 
-   val errorState: ErrorUiState by viewModel.errorUiStateFlow.collectAsStateWithLifecycle()
+   val errorState: ErrorState by viewModel.errorStateFlow.collectAsStateWithLifecycle()
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
-         logDebug(tag, "ErrorUiState: ${errorState.params}")
+         logDebug(tag, "ErrorState: ${errorState.params}")
          // show the error with a snackbar
          showError(snackbarHostState, params, viewModel::onNavigate )
-
          // reset the errorState, params are copied to showError
          viewModel::onErrorEventHandled
       }
    }
 }
-
-
