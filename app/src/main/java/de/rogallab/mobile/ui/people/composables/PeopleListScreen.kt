@@ -25,19 +25,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxDefaults
-import androidx.compose.material3.SwipeToDismissBoxState
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -138,6 +131,22 @@ fun PeopleListScreen(
             key = { it: Person -> it.id }
          ) { person ->
 
+            PersonListItem(
+               id = person.id,
+               firstName = person.firstName,
+               lastName = person.lastName,
+               email = person.email ?: "",
+               phone = person.phone ?: "",
+               onClicked = {
+                  logInfo(tag, "Person clicked: ${person.lastName}")
+                  viewModel.onNavigate(NavEvent.NavigateForward(NavScreen.PersonDetail.route + "/${person.id}"))
+               },
+               onDeleted = {
+                  logInfo(tag, "Person deleted: ${person.lastName}")
+                  viewModel.onProcessPersonIntent(PersonIntent.Remove(person))
+               }
+            )
+            /*
             SwipePersonListItem(
                // item
                person = person,
@@ -159,6 +168,7 @@ fun PeopleListScreen(
                   imagePath = person.imagePath,
                )
             }
+            */
         }
       }
    }

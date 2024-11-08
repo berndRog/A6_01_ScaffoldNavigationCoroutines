@@ -19,13 +19,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PersonListItem(
-   id: String,                // State ↓
-   firstName: String,         // State ↓
-   lastName: String,          // State ↓
-   email: String,             // State ↓
-   phone: String,             // State ↓
-   onClicked: () -> Unit,     // Event ↑
-   onDeleted: () -> Unit      // Event ↑
+   id: String,              // State ↓
+   firstName: String,       // State ↓
+   lastName: String,        // State ↓
+   email: String,           // State ↓
+   phone: String,           // State ↓
+   onClicked: () -> Unit,   // Event ↑
+   onDeleted: () -> Unit    // Event ↑
 ) {
 
    Row(
@@ -37,7 +37,6 @@ fun PersonListItem(
          .weight(0.9f)
          .clickable { onClicked() }
       ) {
-
          Text(
             text = "$firstName $lastName",
             style = MaterialTheme.typography.bodyLarge

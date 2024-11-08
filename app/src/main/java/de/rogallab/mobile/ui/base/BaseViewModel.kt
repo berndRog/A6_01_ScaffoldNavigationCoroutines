@@ -31,7 +31,7 @@ open class BaseViewModel(
    override fun onErrorEventHandled() =
       _errorHandler.onErrorEventHandled()
 
-   // D e l e g a t e  t o  E r r o r H a n d  l e r
+   // D e l e g a t e  t o  N a v i g a t i o n H a n d  l e r
    private val _navHandler: INavigationHandler =
       NavigationHandler(viewModelScope, _tag)
 

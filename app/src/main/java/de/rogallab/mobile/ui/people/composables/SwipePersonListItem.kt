@@ -64,7 +64,7 @@ fun SwipePersonListItem(
          confirmValueChange = { value: SwipeToDismissBoxValue ->
             if (value == SwipeToDismissBoxValue.StartToEnd && !hasNavigated) {
                onNavigate(
-                  NavEvent.NavigateReverse(NavScreen.PersonDetail.route + "/${person.id}"))
+                  NavEvent.NavigateForward(NavScreen.PersonDetail.route + "/${person.id}"))
                hasNavigated = true  // call only once
                return@rememberSwipeToDismissBoxState true
             } else if (value == SwipeToDismissBoxValue.EndToStart) {

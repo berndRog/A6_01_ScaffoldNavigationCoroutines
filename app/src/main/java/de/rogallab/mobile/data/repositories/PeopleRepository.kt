@@ -27,6 +27,8 @@ class PeopleRepository(
 
    override fun getById(id: String): ResultData<Person?> =
       try {
+         throw RuntimeException("TEST throw not implemented")
+
          ResultData.Success(_dataStore.findById(id))
       } catch (t: Throwable) {
          ResultData.Error(t)

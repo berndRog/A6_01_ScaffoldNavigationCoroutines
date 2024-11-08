@@ -28,9 +28,6 @@ class AppStart : Application() {
 
       logInfo(TAG, "onCreate()")
 
-
-
-
    }
 
    companion object {

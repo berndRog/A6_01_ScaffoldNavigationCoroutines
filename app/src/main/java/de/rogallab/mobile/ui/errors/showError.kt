@@ -23,7 +23,7 @@ suspend fun showError(
    }
 
    // navigate to target
-   params.navEvent?.let { event ->
-      onNavigate(event)
+   params.navEvent?.let { navEvent ->
+      onNavigate(navEvent)
    }
 }

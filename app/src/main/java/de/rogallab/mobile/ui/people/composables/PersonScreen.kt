@@ -112,7 +112,6 @@ fun PersonScreen(
             navigationIcon = {
                IconButton(onClick = {
                   logDebug(tag, "Reverse navigation -> PeopleList")
-                  // viewModel.validate(isInputMode)
                   if(viewModel.validate(isInputMode) )
                      viewModel.onNavigate(NavEvent.NavigateReverse(NavScreen.PeopleList.route))
                }) {

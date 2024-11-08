@@ -185,6 +185,7 @@ class PeopleViewModel(
       if (error) {
          onErrorEvent(ErrorParams(message = message, navEvent = null))
          logError(TAG, message)
+         return false
       }
       return true
    }
