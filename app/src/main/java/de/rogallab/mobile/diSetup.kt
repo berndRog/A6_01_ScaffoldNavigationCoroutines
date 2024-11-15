@@ -4,18 +4,24 @@ import de.rogallab.mobile.data.IDataStore
 import de.rogallab.mobile.data.local.datastore.DataStore
 import de.rogallab.mobile.data.repositories.PeopleRepository
 import de.rogallab.mobile.domain.IPeopleRepository
+import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logInfo
-import de.rogallab.mobile.ui.INavigationHandler
-import de.rogallab.mobile.ui.navigation.NavigationHandler
+import de.rogallab.mobile.ui.IErrorHandler
+import de.rogallab.mobile.ui.errors.ErrorParams
 import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.PersonValidator
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
 
 val uiModules: Module = module {
    val tag = "<-uiModules"
+
 
    // Provide PeopleViewModel --------------------------------------------
    logInfo(tag, "single    -> PeopleInputValidator")
@@ -33,11 +39,34 @@ val uiModules: Module = module {
    viewModel<PeopleViewModel> { PeopleViewModel(get(), get() ) }
 }
 
+private val tag = "<-domainModules"
+
+typealias CoroutineContextMain = CoroutineContext
+typealias CoroutineContextIO = CoroutineContext
+
+
+private val _coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
+   // Handle the exception here
+   logError(tag, "Coroutine exception: ${exception.localizedMessage}")
+}
 
 val domainModules: Module = module {
-   val tag = "<-domainModules"
-   logInfo(tag, "nothing do do")
+
+
+   single<CoroutineContextMain> {
+      SupervisorJob() +
+         _coroutineExceptionHandler +
+         Dispatchers.Main
+   }
+
+   single<CoroutineContextIO> {
+      SupervisorJob() +
+         _coroutineExceptionHandler +
+         Dispatchers.IO
+   }
 }
+
+
 
 val dataModules = module {
    val tag = "<-dataModules"
@@ -54,5 +83,5 @@ val dataModules = module {
    //class PeopleRepository(
    //   private val _dataStore: IDataStore
    //): IPeopleRepository {
-   single<IPeopleRepository> { PeopleRepository(get()) }
+   single<IPeopleRepository> { PeopleRepository(get(), Dispatchers.IO ) }
 }

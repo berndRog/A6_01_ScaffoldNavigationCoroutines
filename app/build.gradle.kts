@@ -118,7 +118,7 @@ dependencies {
 
    // Ui Lifecycle
    // https://developer.android.com/jetpack/androidx/releases/lifecycle
-   // val archVersion = "2.2.0"
+   implementation(libs.androidx.lifecycle.viewmodel.ktx)
    // ViewModel utilities for Compose
    implementation(libs.androidx.lifecycle.viewmodel.compose)
    // Lifecycle utilities for Compose

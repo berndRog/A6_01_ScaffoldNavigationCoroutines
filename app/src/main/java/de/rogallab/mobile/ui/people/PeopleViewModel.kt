@@ -1,6 +1,5 @@
 package de.rogallab.mobile.ui.people
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.rogallab.mobile.domain.IPeopleRepository
 import de.rogallab.mobile.domain.ResultData
@@ -9,15 +8,12 @@ import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logInfo
-import de.rogallab.mobile.ui.IErrorHandler
-import de.rogallab.mobile.ui.INavigationHandler
 import de.rogallab.mobile.ui.base.BaseViewModel
-import de.rogallab.mobile.ui.errors.ErrorHandler
 import de.rogallab.mobile.ui.errors.ErrorParams
-import de.rogallab.mobile.ui.navigation.NavigationHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class PeopleViewModel(
    private val _repository: IPeopleRepository,
@@ -42,17 +38,20 @@ class PeopleViewModel(
    }
 
    // read all people from repository
-   private fun fetch() {
-      logDebug(TAG, "fetchPeople")
-      when (val resultData = _repository.getAll()) {
-         is ResultData.Success -> {
-            _peopleUiStateFlow.update { it: PeopleUiState ->
-               it.copy(people = resultData.data.toList())
+   fun fetch() {
+      viewModelScope.launch(exceptionHandler) {
+         _repository.getAll().collect { resultData: ResultData<List<Person>> ->
+            when (resultData) {
+               is ResultData.Success -> {
+                  _peopleUiStateFlow.update { it: PeopleUiState ->
+                     it.copy(people = resultData.data.toList())
+                  }
+                  logDebug(TAG, "fetchAll() people: ${peopleUiStateFlow.value.people.size}")
+               }
+               is ResultData.Error -> {
+                  onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+               }
             }
-            logDebug(TAG, "fetchPeople() people.size: ${peopleUiStateFlow.value.people.size}")
-         }
-         is ResultData.Error -> {
-            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
          }
       }
    }
@@ -106,51 +105,63 @@ class PeopleViewModel(
 
    private fun fetchById(personId: String) {
       logDebug(TAG, "fetchPersonById: $personId")
-      when (val resultData = _repository.getById(personId)) {
-         is ResultData.Success -> _personUiStateFlow.update { it: PersonUiState ->
-            it.copy(person = resultData.data ?: Person())  // new UiState
+
+      viewModelScope.launch(exceptionHandler) {
+         when (val resultData = _repository.getById(personId)) {
+            is ResultData.Success -> _personUiStateFlow.update { it: PersonUiState ->
+               it.copy(person = resultData.data ?: Person())  // new UiState
+            }
+            is ResultData.Error ->
+               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
          }
-         is ResultData.Error ->
-            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
       }
    }
    private fun create() {
       logDebug(TAG, "createPerson: ${_personUiStateFlow.value.person.id.as8()}")
-      when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
-         is ResultData.Success -> fetch()
-         is ResultData.Error ->
-            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+      viewModelScope.launch(exceptionHandler) {
+         when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
+            is ResultData.Success -> fetch()
+            is ResultData.Error ->
+               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+         }
       }
    }
    private fun update() {
       logDebug(TAG, "updatePerson: ${_personUiStateFlow.value.person.id.as8()}")
-      when(val resultData = _repository.update(_personUiStateFlow.value.person)) {
-         is ResultData.Success -> fetch()
-         is ResultData.Error ->
-            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+      viewModelScope.launch(exceptionHandler) {
+         when (val resultData = _repository.update(_personUiStateFlow.value.person)) {
+            is ResultData.Success -> fetch()
+            is ResultData.Error ->
+               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+         }
       }
    }
    private fun remove(person: Person) {
       logDebug(TAG, "removePerson: ${person.id.as8()}")
-      when(val resultData = _repository.remove(person)) {
-         is ResultData.Success -> {
-            removedPerson = person
-            fetch()
+      viewModelScope.launch(exceptionHandler) {
+         when (val resultData = _repository.remove(person)) {
+            is ResultData.Success -> {
+               removedPerson = person
+               fetch()
+            }
+            is ResultData.Error ->
+               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
          }
-         is ResultData.Error ->
-            onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))         }
+      }
    }
 
    fun undoRemove() {
       removedPerson?.let { person ->
          logDebug(TAG, "undoRemovePerson: ${person.id.as8()}")
-         when(val resultData = _repository.create(person)) {
-            is ResultData.Success -> {
-               removedPerson = null
-               fetch()
+         viewModelScope.launch(exceptionHandler) {
+            when (val resultData = _repository.create(person)) {
+               is ResultData.Success -> {
+                  removedPerson = null
+                  fetch()
+               }
+               is ResultData.Error ->
+                  onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
             }
-            is ResultData.Error ->
-               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
          }
       }
    }

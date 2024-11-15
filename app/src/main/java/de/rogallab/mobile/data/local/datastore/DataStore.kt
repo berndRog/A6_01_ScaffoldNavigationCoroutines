@@ -4,15 +4,25 @@ import android.content.Context
 import de.rogallab.mobile.data.IDataStore
 import de.rogallab.mobile.data.local.SeedWithImages
 import de.rogallab.mobile.domain.entities.Person
+import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logVerbose
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
 class DataStore(
-   private val _context: Context
+   private val _context: Context,
+   private val _dispatcherMain: CoroutineDispatcher = Dispatchers.Main,
+   private val _dispatcherIO: CoroutineDispatcher = Dispatchers.IO
 ): IDataStore {
 
    // list of people
@@ -27,66 +37,92 @@ class DataStore(
    init {
       logDebug(TAG, "init: read datastore")
       _people.clear()
-      read()
+      // read the dataStore before any other operation!!!
+      runBlocking { read() }
    }
 
-   override fun selectAll(): List<Person> =
-      _people.toList()
+   override fun selectAll(): Flow<List<Person>> = flow {
+      //delay(500)  // simulate a delay
+      emit(_people)
+   }.flowOn(_dispatcherIO)
 
-   override fun selectWhere(predicate: (Person) -> Boolean): List<Person> =
-      _people.filter(predicate).toList()
+   override fun selectWhere(
+      predicate: (Person) -> Boolean
+   ): Flow<List<Person>> = flow {
+      //delay(500)  // simulate a delay
+      emit(_people.filter(predicate).toList())
+   }.flowOn(_dispatcherIO)
 
-   override fun findById(id: String): Person? =
-      _people.firstOrNull{ it:Person -> it.id == id }
+   override suspend fun findById(id: String): Person? =
+      withContext(_dispatcherMain) {
+         logDebug(TAG, "findById()")
+         _people.firstOrNull { it.id == id }
+      }
 
-   override fun findBy(predicate: (Person) -> Boolean): Person? =
-      _people.firstOrNull(predicate)
+   override suspend fun findBy(predicate: (Person) -> Boolean): Person? =
+      withContext(_dispatcherMain) {
+         logDebug(TAG, "findBy()")
+         _people.firstOrNull(predicate)
+      }
 
-   override fun insert(person: Person) {
-      logVerbose(TAG, "insert: $person")
-      if (_people.any { it.id == person.id })
-         throw IllegalArgumentException("Person with id ${person.id} already exists")
-      _people.add(person)
-      write()
-   }
+   override suspend fun insert(person: Person) =
+      withContext(_dispatcherIO) {
+         logDebug(TAG, "insert: $person")
+         if (_people.any { it.id == person.id })
+            throw IllegalArgumentException("Person with id ${person.id} already exists")
+         _people.add(person)
+         write()
+      }
 
-   override fun update(person: Person) {
-      logVerbose(TAG, "update: $person")
-      val index = _people.indexOfFirst { it.id == person.id }
-      if (index == -1)
-         throw IllegalArgumentException("Person with id ${person.id} does not exist")
-      _people[index] = person
-      write()
-   }
 
-   override fun delete(person: Person) {
-      logVerbose(TAG, "delete: $person")
-      if (_people.none { it.id == person.id })
-         throw IllegalArgumentException("Person with id ${person.id} does not exist")
-      _people.remove(person)
-      write()
-   }
+   override suspend fun update(person: Person) =
+      withContext(_dispatcherIO) {
+         logDebug(TAG, "update()")
+         val index = _people.indexOfFirst { it.id == person.id }
+         if (index == -1)
+            throw IllegalArgumentException("Person with id ${person.id} does not exist")
+         _people[index] = person
+         write()
+      }
+
+   override suspend fun delete(person: Person) =
+      withContext(_dispatcherIO) {
+         logDebug(TAG, "delete()")
+         if (_people.none { it.id == person.id })
+            throw IllegalArgumentException("Person with id ${person.id} does not exist")
+         _people.remove(person)
+         write()
+      }
 
    // dataStore is saved as JSON file to the user's home directory
    // UserHome/Documents/android/people.json
-   private fun read() {
+   private suspend fun read() {
       try {
          val filePath = getFilePath(FILE_NAME)
-         // if file does not exist or is empty, return an empty list
          val file = File(filePath)
+         logVerbose(TAG, "JSON path $filePath")
+
+         // no file or empty file, seed the data
          if (!file.exists() || file.readText().isBlank()) {
             // seed _people with some data
-            val seed = SeedWithImages(_context, _context.resources)
-            _people.addAll(seed.people)
-            logVerbose(TAG, "create(): seedData ${_people.size} people")
-            write()
-            return
+            withContext(_dispatcherIO) {
+               val seed = SeedWithImages(_context, _context.resources)
+               _people.addAll(seed.people)
+               logVerbose(TAG, "create(): seedData ${_people.size} people")
+               write()  // no return value needed
+            }
+            return@read
          }
-         // read json from a file and convert to a list of people
-         val jsonString = File(filePath).readText()
-         logVerbose(TAG, jsonString)
-         _people = _json.decodeFromString(jsonString)
-         logDebug(TAG, "read(): decode JSON ${_people.size} Ppeople")
+
+         // read the JSON file asynchronously
+         withContext(_dispatcherIO) {
+            logDebug(TAG,"read JSON")
+            val jsonString = file.readText()
+            if (jsonString.isNotBlank()) {
+               _people =  _json.decodeFromString(jsonString)
+            }
+            logDebug(TAG, "read(): decode JSON ${_people.size} people")
+         }
       } catch (e: Exception) {
          logError(TAG, "Failed to read: ${e.message}")
          throw e
@@ -94,14 +130,20 @@ class DataStore(
    }
 
    // write the list of people to the dataStore
-   private fun write() {
+   private suspend fun write() {
       try {
          val filePath = getFilePath(FILE_NAME)
-         val jsonString = _json.encodeToString(_people)
+         // encode JSON asynchronously
+         val jsonString = withContext(_dispatcherMain) {
+            logDebug(TAG, "encode JSON")
+            _json.encodeToString(_people)
+         }
          logDebug(TAG, "write(): encode JSON ${_people.size} people")
-         // save to a file
+         // save to a file asynchronously
          val file = File(filePath)
-         file.writeText(jsonString)
+         withContext(_dispatcherIO) {
+            file.writeText(jsonString)
+         }
          logVerbose(TAG, jsonString)
       } catch (e: Exception) {
          logError(TAG, "Failed to write: ${e.message}")

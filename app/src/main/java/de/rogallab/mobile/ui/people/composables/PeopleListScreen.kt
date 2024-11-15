@@ -175,7 +175,6 @@ fun PeopleListScreen(
 
    val errorState: ErrorState
       by viewModel.errorStateFlow.collectAsStateWithLifecycle()
-   logVerbose(tag, "errorState: ${errorState.params}")
 
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->

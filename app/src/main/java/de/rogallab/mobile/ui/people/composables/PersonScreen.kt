@@ -172,7 +172,8 @@ fun PersonScreen(
       } // Column
    } // Scaffold
 
-   val errorState: ErrorState by viewModel.errorStateFlow.collectAsStateWithLifecycle()
+   val errorState: ErrorState
+      by viewModel.errorStateFlow.collectAsStateWithLifecycle()
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
          logDebug(tag, "ErrorState: ${errorState.params}")

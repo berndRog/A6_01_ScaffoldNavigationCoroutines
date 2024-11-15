@@ -7,6 +7,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.androix.startup.KoinStartup.onKoinStartup
 import org.koin.core.logger.Level
 
+@Suppress("OPT_IN_USAGE")
 class AppStart : Application() {
 
    init{
@@ -27,6 +28,8 @@ class AppStart : Application() {
       super.onCreate()
 
       logInfo(TAG, "onCreate()")
+
+
 
    }
 

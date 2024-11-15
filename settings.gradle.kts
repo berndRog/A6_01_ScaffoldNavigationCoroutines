@@ -39,6 +39,6 @@ dependencyResolutionManagement {
    }
 }
 
-rootProject.name = "A5_01_ScaffoldNavigation"
+rootProject.name = "A6_01_ScaffoldNavigationCoroutines"
 include(":app")
  
