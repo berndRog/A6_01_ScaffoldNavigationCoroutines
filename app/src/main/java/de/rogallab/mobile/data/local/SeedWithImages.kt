@@ -8,6 +8,7 @@ import de.rogallab.mobile.data.local.io.deleteFileOnStorage
 import de.rogallab.mobile.data.local.io.writeImageToStorage
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.logDebug
+import de.rogallab.mobile.domain.utilities.newUuid
 import kotlin.random.Random
 
 class SeedWithImages(
@@ -15,7 +16,7 @@ class SeedWithImages(
    private val resources: Resources
 ) {
    var people: MutableList<Person> = mutableListOf<Person>()
-   private val _imagesUri = mutableListOf<String>()
+   private val _imagesUrl = mutableListOf<String>()
 
    init {
       val firstNames = mutableListOf(
@@ -44,7 +45,7 @@ class SeedWithImages(
             "0${random.nextInt(1234, 9999)} " +
                "${random.nextInt(100, 999)}-" +
                "${random.nextInt(10, 9999)}"
-         val person = Person(firstName, lastName, email, phone)
+         val person = Person(firstName, lastName, email, phone, null, newUuid())
          people.add(person)
       }
 
@@ -66,27 +67,27 @@ class SeedWithImages(
          val bitmap = BitmapFactory.decodeResource(resources, it)
          bitmap?.let { itbitm ->
             writeImageToStorage(context, itbitm)?.let { uriPath: String? ->
-               uriPath?.let { _imagesUri.add(uriPath) }
+               uriPath?.let { _imagesUrl.add(uriPath) }
             }
          }
       }
-      if (_imagesUri.size == 11) {
-         people[0] = people[0].copy(imagePath = _imagesUri[0])
-         people[1] = people[1].copy(imagePath = _imagesUri[6])
-         people[2] = people[2].copy(imagePath = _imagesUri[1])
-         people[3] = people[3].copy(imagePath = _imagesUri[7])
-         people[4] = people[4].copy(imagePath = _imagesUri[2])
-         people[5] = people[5].copy(imagePath = _imagesUri[8])
-         people[6] = people[6].copy(imagePath = _imagesUri[3])
-         people[7] = people[7].copy(imagePath = _imagesUri[9])
-         people[8] = people[8].copy(imagePath = _imagesUri[4])
-         people[9] = people[9].copy(imagePath = _imagesUri[10])
-         people[10] = people[10].copy(imagePath = _imagesUri[5])
+      if (_imagesUrl.size == 11) {
+         people[0] = people[0].copy(imagePath = _imagesUrl[0])
+         people[1] = people[1].copy(imagePath = _imagesUrl[6])
+         people[2] = people[2].copy(imagePath = _imagesUrl[1])
+         people[3] = people[3].copy(imagePath = _imagesUrl[7])
+         people[4] = people[4].copy(imagePath = _imagesUrl[2])
+         people[5] = people[5].copy(imagePath = _imagesUrl[8])
+         people[6] = people[6].copy(imagePath = _imagesUrl[3])
+         people[7] = people[7].copy(imagePath = _imagesUrl[9])
+         people[8] = people[8].copy(imagePath = _imagesUrl[4])
+         people[9] = people[9].copy(imagePath = _imagesUrl[10])
+         people[10] = people[10].copy(imagePath = _imagesUrl[5])
       }
    }
 
    fun disposeImages() {
-      _imagesUri.forEach { imageUrl ->
+      _imagesUrl.forEach { imageUrl ->
          logDebug("<disposeImages>", "Url $imageUrl")
          deleteFileOnStorage(imageUrl)
       }

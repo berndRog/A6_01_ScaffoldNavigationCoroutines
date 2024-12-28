@@ -114,7 +114,7 @@ dependencies {
    implementation(libs.androidx.compose.ui.tooling.preview)
    // with version numbers
    implementation(libs.androidx.compose.material3)
-   implementation(libs.androidx.ui.text.google.fonts)
+   implementation(libs.androidx.compose.ui.text.google.fonts)
 
    // Ui Lifecycle
    // https://developer.android.com/jetpack/androidx/releases/lifecycle

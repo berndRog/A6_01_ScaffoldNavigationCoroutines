@@ -16,12 +16,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import de.rogallab.mobile.AppStart
 import de.rogallab.mobile.domain.utilities.logVerbose
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.navigation.NavState
-import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.PersonViewModel
 import de.rogallab.mobile.ui.people.PersonValidator
 import de.rogallab.mobile.ui.people.composables.PeopleListScreen
 import de.rogallab.mobile.ui.people.composables.PersonScreen
@@ -32,12 +31,12 @@ import org.koin.compose.koinInject
 fun AppNavHost(
    // create a NavHostController with a factory function
    navController: NavHostController = rememberNavController(),
-   peopleViewModel: PeopleViewModel = koinViewModel()
+   peopleViewModel: PersonViewModel = koinViewModel()
 ) {
    val tag = "<-AppNavHost"
-   val duration = 5000  // in milliseconds
+   val duration = 1500  // in milliseconds
 
-   // N A V I G A T I O N    H O S T -------------------------------------------
+   //region N A V I G A T I O N    H O S T -------------------------------------------
    NavHost(
       navController = navController,
       startDestination = NavScreen.PeopleList.route,
@@ -74,8 +73,9 @@ fun AppNavHost(
          )
       }
    }
+   //endregion
 
-   // O N E   T I M E   E V E N T S   N A V I G A T I O N ---------------------
+   //region O N E   T I M E   E V E N T S   N A V I G A T I O N ---------------------
    // Observing the navigation state and handle navigation
    val navState: NavState
       by peopleViewModel.navStateFlow.collectAsStateWithLifecycle()
@@ -106,9 +106,10 @@ fun AppNavHost(
          }
       } // end of when (it) {
    } // end of navEvent?.let { it: NavEvent ->
+   //endregion
 }
 
-// A N I M A T I O N S --------------------------------------------------------
+//region A N I M A T I O N S --------------------------------------------------------
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransition(
    duration: Int
 ) = fadeIn(
@@ -140,3 +141,4 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.popExitTransition(
    targetScale = 3.0f,
    animationSpec = tween(duration)
 ) + fadeOut(animationSpec = tween(duration))
+//endregion

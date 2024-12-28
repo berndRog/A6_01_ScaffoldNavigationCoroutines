@@ -2,86 +2,113 @@ package de.rogallab.mobile
 
 import de.rogallab.mobile.data.IDataStore
 import de.rogallab.mobile.data.local.datastore.DataStore
-import de.rogallab.mobile.data.repositories.PeopleRepository
-import de.rogallab.mobile.domain.IPeopleRepository
+import de.rogallab.mobile.data.repositories.PersonsRepository
+import de.rogallab.mobile.domain.IPersonRepository
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logInfo
 import de.rogallab.mobile.ui.IErrorHandler
-import de.rogallab.mobile.ui.errors.ErrorParams
-import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.INavigationHandler
+import de.rogallab.mobile.ui.errors.ErrorHandler
+import de.rogallab.mobile.ui.navigation.NavigationHandler
+import de.rogallab.mobile.ui.people.PersonViewModel
 import de.rogallab.mobile.ui.people.PersonValidator
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
-val uiModules: Module = module {
-   val tag = "<-uiModules"
-
-
-   // Provide PeopleViewModel --------------------------------------------
-   logInfo(tag, "single    -> PeopleInputValidator")
-   //class PersonValidator(
-   //   private val _context: Context
-   //) {
-   single<PersonValidator> { PersonValidator(androidContext()) }
-
-   logInfo(tag, "viewModel -> PeopleViewModel")
-   //class PeopleViewModel(
-   //   private val _dataStore: IDataStore,
-   //   private val _repository: IPeopleRepository,
-   //   private val _validator:PersonValidator
-   // ) : ViewModel() {
-   viewModel<PeopleViewModel> { PeopleViewModel(get(), get() ) }
-}
-
-private val tag = "<-domainModules"
-
-typealias CoroutineContextMain = CoroutineContext
-typealias CoroutineContextIO = CoroutineContext
-
-
-private val _coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
-   // Handle the exception here
-   logError(tag, "Coroutine exception: ${exception.localizedMessage}")
-}
+typealias CoroutineDispatcherMain = CoroutineDispatcher
+typealias CoroutineDispatcherIo = CoroutineDispatcher
+typealias CoroutineScopeMain = CoroutineScope
+typealias CoroutineScopeIo = CoroutineScope
 
 val domainModules: Module = module {
+   val tag = "<-domainModules"
 
 
-   single<CoroutineContextMain> {
-      SupervisorJob() +
-         _coroutineExceptionHandler +
-         Dispatchers.Main
+   logInfo(tag, "factory   -> CoroutineExceptionHandler")
+   factory<CoroutineExceptionHandler> {
+      CoroutineExceptionHandler { _, exception ->
+         logError(tag, "Coroutine exception: ${exception.localizedMessage}")
+      }
+   }
+   logInfo( tag, "factory  -> CoroutineDispatcherMain")
+   factory<CoroutineDispatcherMain> { Dispatchers.Main }
+
+   logInfo(tag, "factory   -> CoroutineDispatcherIo)")
+   factory<CoroutineDispatcherIo>{ Dispatchers.IO }
+
+
+   logInfo(tag, "factory   -> CoroutineScopeMain")
+   factory<CoroutineScopeMain> {
+      CoroutineScope(
+         SupervisorJob() +
+            get<CoroutineDispatcherIo>()
+      )
    }
 
-   single<CoroutineContextIO> {
-      SupervisorJob() +
-         _coroutineExceptionHandler +
-         Dispatchers.IO
+   logInfo(tag, "factory   -> CoroutineScopeIo")
+   factory<CoroutineScopeIo> {
+      CoroutineScope(
+         SupervisorJob() +
+            get<CoroutineDispatcherIo>()
+      )
    }
 }
-
-
 
 val dataModules = module {
    val tag = "<-dataModules"
 
-   // Provide IDataStore
    logInfo(tag, "single    -> DataStore: IDataStore")
-   //class DataStore(
-   //   private val _context: Context
-   //): IDataStore {
-   single<IDataStore> { DataStore(androidContext()) }
+   single<IDataStore> {
+      DataStore(
+         _context = androidContext()
+      )
+   }
 
-   // Provide IPeopleRepository
-   logInfo(tag, "single    -> PeopleRepository: IPeopleRepository")
-   //class PeopleRepository(
-   //   private val _dataStore: IDataStore
-   //): IPeopleRepository {
-   single<IPeopleRepository> { PeopleRepository(get(), Dispatchers.IO ) }
+   logInfo(tag, "single    -> PersonsRepository: IPersonRepository")
+   single<IPersonRepository> {
+      PersonsRepository(
+         _dataStore = get<IDataStore>(),
+         _coroutineDispatcher = get<CoroutineDispatcherIo>(),
+      )
+   }
+}
+
+val uiModules: Module = module {
+   val tag = "<-uiModules"
+
+   logInfo(tag, "factory   -> NavigationoroutineExceptionHandler")
+   factory<INavigationHandler> {
+      NavigationHandler(
+         _coroutineScopeMain = get<CoroutineScopeMain>(),
+         _exceptionHandler = get<CoroutineExceptionHandler>()
+      )
+   }
+
+   factory<IErrorHandler> {
+      ErrorHandler(
+         _coroutineScopeMain = get<CoroutineScopeMain>(),
+         _exceptionHandler = get<CoroutineExceptionHandler>()
+      )
+   }
+
+   logInfo(tag, "single    -> PeopleInputValidator")
+   single<PersonValidator> { PersonValidator(androidContext()) }
+
+   logInfo(tag, "viewModel -> PersonViewModel")
+   viewModel<PersonViewModel> {
+      PersonViewModel(
+         _repository = get<IPersonRepository>(),
+         _validator = get<PersonValidator>(),
+         _navigationHandler = get<INavigationHandler>(),
+         _errorHandler = get<IErrorHandler>(),
+         _exceptionHandler = get<CoroutineExceptionHandler>()
+      )
+   }
 }

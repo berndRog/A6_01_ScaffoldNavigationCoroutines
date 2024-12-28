@@ -3,7 +3,7 @@ package de.rogallab.mobile.domain
 import de.rogallab.mobile.domain.entities.Person
 import kotlinx.coroutines.flow.Flow
 
-interface IPeopleRepository {
+interface IPersonRepository {
 
     fun getAll(): Flow<ResultData<List<Person>>>
     fun getWhere(predicate: (Person) -> Boolean): Flow<ResultData<List<Person>>>

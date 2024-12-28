@@ -1,5 +1,5 @@
 [versions]
-androidxComposeBom = "2024.10.01"
+androidxComposeBom = "2024.12.01"
 
 activityCompose = "1.9.3"
 coilCompose = "2.7.0"
@@ -19,7 +19,7 @@ junit = "4.13.2"
 truth = "1.6.0"
 manifest = "1.7.5"
 # plugins
-agp = "8.7.2"
+agp = "8.8.0-rc02"
 compose-compiler = "2.0.0"  # must be same version as kotlin!?
 kotlin = "2.0.0"
 ksp = "2.0.0-1.0.21"
@@ -37,7 +37,7 @@ androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-material-icons= { module = "androidx.compose.material:material-icons-extended" }
-androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
+androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }

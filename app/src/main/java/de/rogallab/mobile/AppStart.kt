@@ -10,9 +10,11 @@ import org.koin.core.logger.Level
 @Suppress("OPT_IN_USAGE")
 class AppStart : Application() {
 
-   init{
-      logInfo(TAG, "init: onKoinStartUp{...}")
-      onKoinStartup {
+   override fun onCreate() {
+      super.onCreate()
+
+      logInfo(TAG, "onCreate(): startKoin{...}")
+      startKoin {
          // Log Koin into Android logger
          androidLogger(Level.DEBUG)
          // Reference Android context

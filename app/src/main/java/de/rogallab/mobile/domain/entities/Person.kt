@@ -9,5 +9,5 @@ data class Person(
    val email: String? = null,
    val phone:String? = null,
    val imagePath: String? = "",
-   val id: String = UUID.randomUUID().toString()
+   val id: String
 )

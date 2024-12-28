@@ -1,31 +1,37 @@
 package de.rogallab.mobile.ui.people
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.rogallab.mobile.domain.IPeopleRepository
+import de.rogallab.mobile.domain.IPersonRepository
 import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.as8
 import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logInfo
-import de.rogallab.mobile.ui.base.BaseViewModel
+import de.rogallab.mobile.domain.utilities.newUuid
+import de.rogallab.mobile.ui.IErrorHandler
+import de.rogallab.mobile.ui.INavigationHandler
 import de.rogallab.mobile.ui.errors.ErrorParams
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class PeopleViewModel(
-   private val _repository: IPeopleRepository,
-   private val _validator: PersonValidator
-) : BaseViewModel(TAG) {
+class PersonViewModel(
+   private val _repository: IPersonRepository,
+   private val _validator: PersonValidator,
+   private val _navigationHandler: INavigationHandler,
+   private val _errorHandler: IErrorHandler,
+   private val _exceptionHandler: CoroutineExceptionHandler
+) : ViewModel(),
+   INavigationHandler by _navigationHandler,
+   IErrorHandler by _errorHandler {
 
    private var removedPerson: Person? = null
 
-   // ===============================
-   // S T A T E   C H A N G E S
-   // ===============================
-   // Data Binding PeopleListScreen <=> PersonViewModel
+   //region PeopleListScreen -------------------------------------------------------------------------------
    private val _peopleUiStateFlow = MutableStateFlow(PeopleUiState())
    val peopleUiStateFlow = _peopleUiStateFlow.asStateFlow()
 
@@ -39,7 +45,7 @@ class PeopleViewModel(
 
    // read all people from repository
    fun fetch() {
-      viewModelScope.launch(exceptionHandler) {
+      viewModelScope.launch(_exceptionHandler) {
          _repository.getAll().collect { resultData: ResultData<List<Person>> ->
             when (resultData) {
                is ResultData.Success -> {
@@ -48,15 +54,14 @@ class PeopleViewModel(
                   }
                   logDebug(TAG, "fetchAll() people: ${peopleUiStateFlow.value.people.size}")
                }
-               is ResultData.Error -> {
-                  onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
-               }
+               is ResultData.Error -> handleErrorEvent(resultData.throwable)
             }
          }
       }
    }
+   //endregion PeopleListScreen---------------------------------------------------------------
 
-   // Data Binding PersonScreen <=> PersonViewModel
+   //region PersonScreen --------------------------------------------------------------------------------
    private val _personUiStateFlow = MutableStateFlow(PersonUiState())
    val personUiStateFlow = _personUiStateFlow.asStateFlow()
 
@@ -106,46 +111,42 @@ class PeopleViewModel(
    private fun fetchById(personId: String) {
       logDebug(TAG, "fetchPersonById: $personId")
 
-      viewModelScope.launch(exceptionHandler) {
+      viewModelScope.launch(_exceptionHandler) {
          when (val resultData = _repository.getById(personId)) {
             is ResultData.Success -> _personUiStateFlow.update { it: PersonUiState ->
-               it.copy(person = resultData.data ?: Person())  // new UiState
+               it.copy(person = resultData.data ?: Person(id = newUuid()))  // new UiState
             }
-            is ResultData.Error ->
-               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+            is ResultData.Error -> handleErrorEvent(resultData.throwable)
          }
       }
    }
    private fun create() {
       logDebug(TAG, "createPerson: ${_personUiStateFlow.value.person.id.as8()}")
-      viewModelScope.launch(exceptionHandler) {
+      viewModelScope.launch(_exceptionHandler) {
          when (val resultData = _repository.create(_personUiStateFlow.value.person)) {
             is ResultData.Success -> fetch()
-            is ResultData.Error ->
-               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+            is ResultData.Error -> handleErrorEvent(resultData.throwable)
          }
       }
    }
    private fun update() {
       logDebug(TAG, "updatePerson: ${_personUiStateFlow.value.person.id.as8()}")
-      viewModelScope.launch(exceptionHandler) {
+      viewModelScope.launch(_exceptionHandler) {
          when (val resultData = _repository.update(_personUiStateFlow.value.person)) {
             is ResultData.Success -> fetch()
-            is ResultData.Error ->
-               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+            is ResultData.Error -> handleErrorEvent(resultData.throwable)
          }
       }
    }
    private fun remove(person: Person) {
       logDebug(TAG, "removePerson: ${person.id.as8()}")
-      viewModelScope.launch(exceptionHandler) {
+      viewModelScope.launch(_exceptionHandler) {
          when (val resultData = _repository.remove(person)) {
             is ResultData.Success -> {
                removedPerson = person
                fetch()
             }
-            is ResultData.Error ->
-               onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+            is ResultData.Error -> handleErrorEvent(resultData.throwable)
          }
       }
    }
@@ -153,26 +154,24 @@ class PeopleViewModel(
    fun undoRemove() {
       removedPerson?.let { person ->
          logDebug(TAG, "undoRemovePerson: ${person.id.as8()}")
-         viewModelScope.launch(exceptionHandler) {
+         viewModelScope.launch(_exceptionHandler) {
             when (val resultData = _repository.create(person)) {
                is ResultData.Success -> {
                   removedPerson = null
                   fetch()
                }
-               is ResultData.Error ->
-                  onErrorEvent(ErrorParams(throwable = resultData.throwable, navEvent = null))
+               is ResultData.Error -> handleErrorEvent(resultData.throwable)
             }
          }
       }
    }
 
    private fun clearState() {
-      _personUiStateFlow.update { it.copy(person = Person()) }
+      _personUiStateFlow.update { it.copy(person = Person(id = newUuid())) }
    }
+   //endregion-
 
-   // =========================================
-   // V A L I D A T E   I N P U T   F I E L D S
-   // =========================================
+   //region Validate input fields ------------------------------------------------------------------------
    // validate all input fields after user finished input into the form
    fun validate(isInput: Boolean): Boolean {
       val person = _personUiStateFlow.value.person
@@ -200,8 +199,9 @@ class PeopleViewModel(
       }
       return true
    }
+   //endregion
 
    companion object {
-      private const val TAG = "<-PeopleViewModel"
+      private const val TAG = "<-PersonViewModel"
    }
 }

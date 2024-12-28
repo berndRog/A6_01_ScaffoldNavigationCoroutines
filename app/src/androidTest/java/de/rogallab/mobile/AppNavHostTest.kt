@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import de.rogallab.mobile.ui.navigation.composables.AppNavHost
-import de.rogallab.mobile.ui.people.PeopleViewModel
+import de.rogallab.mobile.ui.people.PersonViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
@@ -16,7 +16,7 @@ class AppNavHostTest : KoinTest {
    @get:Rule
    val composeTestRule = createComposeRule()
 
-   private val viewModel: PeopleViewModel by inject()
+   private val viewModel: PersonViewModel by inject()
 
    @Test
    fun testNavigationToPeopleList() {

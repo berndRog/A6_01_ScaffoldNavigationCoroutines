@@ -45,13 +45,13 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SwipePersonListItem(
-      person: Person,
-      onNavigate: (NavEvent) -> Unit,
-      onProcessIntent: (PersonIntent) -> Unit,
-      onErrorEvent: (ErrorParams) -> Unit,
-      onUndoAction: () -> Unit,
-      animationDuration: Int = 1000,
-      content: @androidx.compose.runtime.Composable () -> Unit
+   person: Person,
+   onNavigate: (NavEvent) -> Unit,
+   onProcessIntent: (PersonIntent) -> Unit,
+   onErrorEvent: (ErrorParams) -> Unit,
+   onUndoAction: () -> Unit,
+   animationDuration: Int = 1000,
+   content: @androidx.compose.runtime.Composable () -> Unit
 ) {
 
    var isRemoved by remember{ mutableStateOf(false) }
@@ -87,7 +87,7 @@ fun SwipePersonListItem(
             message = undoDeletePerson,
             actionLabel = undoAnswer,
             duration = SnackbarDuration.Short,
-            withUndoAction = true,
+            withUndoAction = false,
             onUndoAction = onUndoAction,
             navEvent = NavEvent.NavigateReverse(route = NavScreen.PeopleList.route)
          )
@@ -123,7 +123,7 @@ fun SetSwipeBackground(state: SwipeToDismissBoxState) {
 
    // Determine the properties of the swipe
    val (colorBox, colorIcon, alignment, icon, description, scale) =
-      getSwipeProperties(state)
+      GetSwipeProperties(state)
 
    Box(
       Modifier.fillMaxSize()
@@ -145,7 +145,7 @@ fun SetSwipeBackground(state: SwipeToDismissBoxState) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun getSwipeProperties(
+fun GetSwipeProperties(
    state: SwipeToDismissBoxState
 ): SwipeProperties {
 

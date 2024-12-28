@@ -1,7 +1,7 @@
 package de.rogallab.mobile.data.repositories
 
 import de.rogallab.mobile.data.IDataStore
-import de.rogallab.mobile.domain.IPeopleRepository
+import de.rogallab.mobile.domain.IPersonRepository
 import de.rogallab.mobile.domain.ResultData
 import de.rogallab.mobile.domain.entities.Person
 import de.rogallab.mobile.domain.utilities.as8
@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.flowOn
 
 import kotlinx.coroutines.withContext
 
-class PeopleRepository(
+class PersonsRepository(
    private val _dataStore: IDataStore,
    private val _coroutineDispatcher: CoroutineDispatcher
-): IPeopleRepository {
+): IPersonRepository {
 
 
 
@@ -102,6 +102,6 @@ class PeopleRepository(
       }
 
    companion object {
-      private const val TAG = "<-PeopleRepository"
+      private const val TAG = "<-PersonsRepository"
    }
 }

@@ -48,13 +48,13 @@ import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
 import de.rogallab.mobile.ui.people.PeopleIntent
-import de.rogallab.mobile.ui.people.PeopleViewModel
 import de.rogallab.mobile.ui.people.PersonIntent
+import de.rogallab.mobile.ui.people.PersonViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeopleListScreen(
-   viewModel: PeopleViewModel = viewModel(),
+   viewModel: PersonViewModel = viewModel(),
 ) {
    val tag = "<-PeopleListScreen"
 
@@ -66,7 +66,7 @@ fun PeopleListScreen(
       logVerbose(tag, "fetchPeople()")
       viewModel.onProcessPeopleIntent(PeopleIntent.Fetch)
    }
-   
+
    // Back navigation
    val activity = LocalContext.current as Activity
    BackHandler(
@@ -131,33 +131,13 @@ fun PeopleListScreen(
             key = { it: Person -> it.id }
          ) { person ->
 
-            PersonListItem(
-               id = person.id,
-               firstName = person.firstName,
-               lastName = person.lastName,
-               email = person.email ?: "",
-               phone = person.phone ?: "",
-               onClicked = {
-                  logInfo(tag, "Person clicked: ${person.lastName}")
-                  viewModel.onNavigate(NavEvent.NavigateForward(NavScreen.PersonDetail.route + "/${person.id}"))
-               },
-               onDeleted = {
-                  logInfo(tag, "Person deleted: ${person.lastName}")
-                  viewModel.onProcessPersonIntent(PersonIntent.Remove(person))
-               }
-            )
-            /*
             SwipePersonListItem(
-               // item
-               person = person,
-               // navigate to DetailScreen
-               onNavigate = viewModel::onNavigate,
-               // remove item
-               onProcessIntent = { viewModel.onProcessPersonIntent(PersonIntent.Remove(person)) },
-               // undo -> show snackbar
-               onErrorEvent = viewModel::onErrorEvent,
-               // undo -> action
-               onUndoAction = viewModel::undoRemove
+               person = person,                          // item
+               onNavigate = viewModel::onNavigate,       // navigate to DetailScreen
+               onProcessIntent = {                       // remove item
+                  viewModel.onProcessPersonIntent(PersonIntent.Remove(person)) },
+               onErrorEvent = viewModel::onErrorEvent,   // undo -> show snackbar
+               onUndoAction = viewModel::undoRemove      // undo -> action
             ) {
                // content
                PersonCard(
@@ -168,21 +148,18 @@ fun PeopleListScreen(
                   imagePath = person.imagePath,
                )
             }
-            */
         }
       }
    }
 
+
    val errorState: ErrorState
       by viewModel.errorStateFlow.collectAsStateWithLifecycle()
-
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
-         logDebug(tag, "ErrorUiState: ${errorState.params}")
          // show the error with a snackbar
-         showError(snackbarHostState, params, viewModel::onNavigate )
-         // reset the errorState, params are copied to showError
-         viewModel.onErrorEventHandled()
+         showError(snackbarHostState, params,
+            viewModel::onNavigate, viewModel::onErrorEventHandled)
       }
    }
 }

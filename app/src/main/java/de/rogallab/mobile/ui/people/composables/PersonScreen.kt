@@ -46,17 +46,17 @@ import de.rogallab.mobile.ui.errors.ErrorState
 import de.rogallab.mobile.ui.errors.showError
 import de.rogallab.mobile.ui.navigation.NavEvent
 import de.rogallab.mobile.ui.navigation.NavScreen
-import de.rogallab.mobile.ui.people.PeopleViewModel
-import de.rogallab.mobile.ui.people.PersonValidator
 import de.rogallab.mobile.ui.people.PersonIntent
 import de.rogallab.mobile.ui.people.PersonUiState
+import de.rogallab.mobile.ui.people.PersonValidator
+import de.rogallab.mobile.ui.people.PersonViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonScreen(
-   viewModel: PeopleViewModel = koinViewModel(),
+   viewModel: PersonViewModel = koinViewModel(),
    validator: PersonValidator = koinInject(),
    isInputScreen: Boolean = true,
    id: String? = null
@@ -94,10 +94,10 @@ fun PersonScreen(
       viewModel.onNavigate(NavEvent.NavigateBack(NavScreen.PeopleList.route))
    }
 
-   val windowInsets = WindowInsets.systemBars
-      .add(WindowInsets.captionBar)
-      .add(WindowInsets.ime)
-      .add(WindowInsets.safeGestures)
+//   val windowInsets = WindowInsets.systemBars
+//      .add(WindowInsets.captionBar)
+//      .add(WindowInsets.ime)
+//      .add(WindowInsets.safeGestures)
 
    val snackbarHostState = remember { SnackbarHostState() }
 
@@ -152,13 +152,13 @@ fun PersonScreen(
             validateName = validator::validateLastName,     // Event ↑ no state change
          )
          InputEmail(
-            email = personUiState.person.email,             // State ↓
+            email = personUiState.person.email ?: "",       // State ↓
             onEmailChange = { email:String ->               // Event ↑
                viewModel.onProcessPersonIntent(PersonIntent.EmailChange(email)) },
             validateEmail = validator::validateEmail        // Event ↑ no state change
          )
          InputPhone(
-            phone = personUiState.person.phone,             // State ↓
+            phone = personUiState.person.phone ?: "",       // State ↓
             onPhoneChange = { phone:String ->               // Event ↑
                viewModel.onProcessPersonIntent(PersonIntent.PhoneChange(phone)) },
             validatePhone = validator::validatePhone        // Event ↑ no state change
@@ -172,15 +172,14 @@ fun PersonScreen(
       } // Column
    } // Scaffold
 
+
    val errorState: ErrorState
       by viewModel.errorStateFlow.collectAsStateWithLifecycle()
    LaunchedEffect(errorState.params) {
       errorState.params?.let { params: ErrorParams ->
-         logDebug(tag, "ErrorState: ${errorState.params}")
          // show the error with a snackbar
-         showError(snackbarHostState, params, viewModel::onNavigate )
-         // reset the errorState, params are copied to showError
-         viewModel::onErrorEventHandled
+         showError(snackbarHostState, params,
+            viewModel::onNavigate, viewModel::onErrorEventHandled)
       }
    }
 }

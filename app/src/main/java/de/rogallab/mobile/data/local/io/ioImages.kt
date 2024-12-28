@@ -3,6 +3,7 @@ package de.rogallab.mobile.data.local.io
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import androidx.core.net.toFile
 import de.rogallab.mobile.domain.utilities.logError
@@ -14,8 +15,14 @@ fun readImageFromStorage(
    uri: Uri
 ): Bitmap? =
    try {
-      BitmapFactory.decodeFile(uri.toFile().absolutePath)
-         ?: throw IOException("BitmapFactory.decodeFile() returned null")
+      uri.toFile().absolutePath?.let { path ->
+         val source = ImageDecoder.createSource(File(path))
+         return ImageDecoder.decodeBitmap(source) { decoder, info, source ->
+//         decoder.setTargetSize(100, 100) // Optional customization
+         }
+      } ?: throw IOException("File does not exist")
+//      BitmapFactory.decodeFile(uri.toFile().absolutePath)
+//         ?: throw IOException("BitmapFactory.decodeFile() returned null")
    } catch (e: IOException) {
       e.localizedMessage?.let { logError("<-readImageFromInternalStorage", it) }
       throw e
