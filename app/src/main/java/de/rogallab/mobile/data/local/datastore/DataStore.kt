@@ -9,10 +9,14 @@ import de.rogallab.mobile.domain.utilities.logDebug
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logVerbose
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -34,11 +38,19 @@ class DataStore(
       ignoreUnknownKeys = true
    }
 
+
+   val scope = CoroutineScope(SupervisorJob()+ Dispatchers.IO)
+
+
    init {
       logDebug(TAG, "init: read datastore")
       _people.clear()
       // read the dataStore before any other operation!!!
-      runBlocking { read() }
+
+      runBlocking {
+         read()
+         logDebug(TAG, "init: read datastore done")
+      }
    }
 
    override fun selectAll(): Flow<List<Person>> = flow {
@@ -105,12 +117,13 @@ class DataStore(
          // no file or empty file, seed the data
          if (!file.exists() || file.readText().isBlank()) {
             // seed _people with some data
-            withContext(_dispatcherIO) {
+            runBlocking {
                val seed = SeedWithImages(_context, _context.resources)
                _people.addAll(seed.people)
                logVerbose(TAG, "create(): seedData ${_people.size} people")
-               write()  // no return value needed
             }
+            write()  // no return value needed
+            logDebug(TAG, "create(): data written")
             return@read
          }
 
@@ -134,10 +147,7 @@ class DataStore(
       try {
          val filePath = getFilePath(FILE_NAME)
          // encode JSON asynchronously
-         val jsonString = withContext(_dispatcherMain) {
-            logDebug(TAG, "encode JSON")
-            _json.encodeToString(_people)
-         }
+         val jsonString = _json.encodeToString(_people)
          logDebug(TAG, "write(): encode JSON ${_people.size} people")
          // save to a file asynchronously
          val file = File(filePath)

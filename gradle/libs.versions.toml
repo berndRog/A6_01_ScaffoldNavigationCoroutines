@@ -4,12 +4,12 @@ androidxComposeBom = "2024.12.01"
 activityCompose = "1.9.3"
 coilCompose = "2.7.0"
 core = "1.15.0"
-kotlinCoroutines = "1.9.0"
+kotlinCoroutines = "1.10.1"
 kotlinxDatetime = "0.6.1"
 kotlinxSerializationJson = "1.7.3"
 lifecycle = "2.8.7"
-navigation = "2.8.3"
-koin = "4.0.0"
+navigation = "2.8.5"
+koin = "4.0.1"
 
 # testing
 androidTestCore = "1.6.1"
@@ -17,7 +17,7 @@ espresso = "3.6.1"
 extJunit = "1.2.1"
 junit = "4.13.2"
 truth = "1.6.0"
-manifest = "1.7.5"
+manifest = "1.7.6"
 # plugins
 agp = "8.8.0-rc02"
 compose-compiler = "2.0.0"  # must be same version as kotlin!?
@@ -50,7 +50,6 @@ core-ktx = { module = "androidx.test:core-ktx", version.ref = "androidTestCore" 
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
-koin-androidx-startup = { module = "io.insert-koin:koin-androidx-startup", version.ref = "koin"}
 
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }

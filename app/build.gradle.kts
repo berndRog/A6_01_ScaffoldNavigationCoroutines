@@ -136,7 +136,6 @@ dependencies {
    // Koin
    implementation(libs.koin.android)
    implementation(libs.koin.androidx.compose)
-   implementation(libs.koin.androidx.startup)
 
    // Ktor/Kotlin JSON Serializer
    implementation(libs.kotlinx.serialization.json)

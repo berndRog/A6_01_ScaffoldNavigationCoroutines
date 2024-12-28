@@ -104,7 +104,6 @@ fun PersonScreen(
    Scaffold(
       modifier = Modifier
          .fillMaxSize()
-         .padding(windowInsets.asPaddingValues())
          .background(color = MaterialTheme.colorScheme.surface),
       topBar = {
          TopAppBar(

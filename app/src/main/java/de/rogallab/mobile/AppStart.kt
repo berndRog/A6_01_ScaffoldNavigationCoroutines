@@ -4,10 +4,9 @@ import android.app.Application
 import de.rogallab.mobile.domain.utilities.logInfo
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.androix.startup.KoinStartup.onKoinStartup
+import org.koin.core.context.GlobalContext.startKoin
 import org.koin.core.logger.Level
 
-@Suppress("OPT_IN_USAGE")
 class AppStart : Application() {
 
    override fun onCreate() {
@@ -25,20 +24,10 @@ class AppStart : Application() {
    }
 
 
-
-   override fun onCreate() {
-      super.onCreate()
-
-      logInfo(TAG, "onCreate()")
-
-
-
-   }
-
    companion object {
-      const val ISINFO = true
-      const val ISDEBUG = true
-      const val ISVERBOSE = true
+      const val IS_INFO = true
+      const val IS_DEBUG = true
+      const val IS_VERBOSE = true
       private const val TAG = "<-AppApplication"
    }
 
