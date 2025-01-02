@@ -17,7 +17,7 @@
       android:name=".ui.MainActivity"
       android:exported="true"
       android:windowSoftInputMode="adjustResize"
-      android:theme="@style/Theme.A5_01_ScaffoldNavigation">
+      android:theme="@style/Theme.A6_01_ScaffoldNavigationCoroutines">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
 

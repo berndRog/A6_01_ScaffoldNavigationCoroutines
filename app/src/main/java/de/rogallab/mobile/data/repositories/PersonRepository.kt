@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.flowOn
 
 import kotlinx.coroutines.withContext
 
-class PersonsRepository(
+class PersonRepository(
    private val _dataStore: IDataStore,
    private val _coroutineDispatcher: CoroutineDispatcher
 ): IPersonRepository {
@@ -102,6 +102,6 @@ class PersonsRepository(
       }
 
    companion object {
-      private const val TAG = "<-PersonsRepository"
+      private const val TAG = "<-PersonRepository"
    }
 }

@@ -2,7 +2,7 @@ package de.rogallab.mobile
 
 import de.rogallab.mobile.data.IDataStore
 import de.rogallab.mobile.data.local.datastore.DataStore
-import de.rogallab.mobile.data.repositories.PersonsRepository
+import de.rogallab.mobile.data.repositories.PersonRepository
 import de.rogallab.mobile.domain.IPersonRepository
 import de.rogallab.mobile.domain.utilities.logError
 import de.rogallab.mobile.domain.utilities.logInfo
@@ -71,9 +71,9 @@ val dataModules = module {
       )
    }
 
-   logInfo(tag, "single    -> PersonsRepository: IPersonRepository")
+   logInfo(tag, "single    -> PersonRepository: IPersonRepository")
    single<IPersonRepository> {
-      PersonsRepository(
+      PersonRepository(
          _dataStore = get<IDataStore>(),
          _coroutineDispatcher = get<CoroutineDispatcherIo>(),
       )
